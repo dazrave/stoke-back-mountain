@@ -11,16 +11,5 @@ cache/
 *.bak-*
 *.bak[0-9]
 
-# Earshot: voice capture, transcripts and secrets
-tools/earshot/.env
-tools/earshot/node_modules/
-tools/earshot/.venv/
-tools/earshot/queue/
-transcripts/
-tools/earshot/.telemetry-cache.jsonl
-
 # SBM web: public submissions and triage drafts (live on the server)
 web/submissions/
-
-# Cut-list generated output
-tools/cutlist/out/
