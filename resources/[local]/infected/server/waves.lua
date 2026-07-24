@@ -94,6 +94,13 @@ local function startWave()
 
     setState({ wave = wave, spawned = 0, dead = 0 })
 
+    -- Brutes lead every Nth wave (the boss cadence): a red-blip set-piece worth
+    -- clipping. Mark it here, where the server already knows the number, using
+    -- the same rule Archetypes.bruteCountForWave applies client-side.
+    if wave >= Config.waves.bruteEvery and wave % Config.waves.bruteEvery == 0 then
+        TriggerEvent('telemetry:mark', 'brute-wave:' .. wave)
+    end
+
     for source, quota in pairs(splitQuota(total, players)) do
         if quota > 0 then
             TriggerClientEvent('infected:spawnShare', source, quota, wave)
@@ -162,6 +169,10 @@ CreateThread(function()
             if state.wave > 0 then
                 TriggerClientEvent('infected:waveCleared', -1, state.wave)
                 print(('[infected] wave %d cleared'):format(state.wave))
+
+                -- A clean clear, especially a last-second one, clips well, so
+                -- flag it for the highlight pass alongside the moments.
+                TriggerEvent('telemetry:mark', 'wave-cleared:' .. state.wave)
 
                 if state.wave > record.bestWave then
                     record = { bestWave = state.wave, set = os.date('%Y-%m-%d') }
@@ -352,8 +363,13 @@ CreateThread(function()
         if state.running then
             local players = GetPlayers()
             if #players > 0 then
+                local name = names[math.random(#names)]
                 TriggerClientEvent('pint:moment',
-                    tonumber(players[math.random(#players)]), names[math.random(#names)])
+                    tonumber(players[math.random(#players)]), name)
+
+                -- Same mark the campaign director stamps, so the clipper treats
+                -- a sandbox set-piece and a mission one identically.
+                TriggerEvent('telemetry:mark', 'moment:' .. name)
             end
         end
     end

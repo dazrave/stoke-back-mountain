@@ -31,6 +31,10 @@ local function endRound(result)
     setState({ phase = 'idle' })
     TriggerClientEvent('chase:end', -1, result, state.fugitiveName)
 
+    -- Every round ends one way - nicked, crashed, or a clean getaway - and that
+    -- ending is the money shot. Stamp it so the clipper keys a clip to it.
+    TriggerEvent('telemetry:mark', 'chase:' .. tostring(result))
+
     -- Hand the world back to the zombie stack.
     CreateThread(function()
         Wait(8000)

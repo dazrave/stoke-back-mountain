@@ -649,7 +649,13 @@ CreateThread(function()
                 local players = GetPlayers()
                 if #players > 0 then
                     local target = players[math.random(#players)]
-                    TriggerClientEvent('pint:moment', tonumber(target), table.remove(queue))
+                    local name   = table.remove(queue)
+                    TriggerClientEvent('pint:moment', tonumber(target), name)
+
+                    -- Stamp the set-piece into telemetry so the clipper can key
+                    -- a clip to it later: these scripted disasters are the best
+                    -- footage of the night and were going unmarked.
+                    TriggerEvent('telemetry:mark', 'moment:' .. name)
                 end
             end
         end
