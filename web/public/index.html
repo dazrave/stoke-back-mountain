@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stoke Back Mountain — an AI builds our GTA nights while we play</title>
+<meta name="description" content="Custom co-op GTA V / FiveM game modes, written live by an AI while a room full of mates play them. A zombie campaign, a horde mode, a police chase — and an idea box that feeds straight into the build.">
+<meta property="og:title" content="Stoke Back Mountain">
+<meta property="og:description" content="An AI builds our GTA nights, live, while we play them. Pitch an idea.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍺</text></svg>">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">🍺 &nbsp;a pub · an apocalypse · a police chase</p>
+    <h1>Stoke Back Mountain</h1>
+    <p class="lede">
+      Custom co-op game modes for GTA&nbsp;V, and here's the daft part —
+      <strong>almost all of it is written live by an AI while we're mid-game</strong>.
+      Someone shouts "the zombies should drag us out of the car", and a few
+      minutes later the zombies drag us out of the car. Occasionally it does
+      something else entirely. That's the fun.
+    </p>
+    <div class="cta-row">
+      <a class="btn primary" href="#idea">Pitch an idea</a>
+      <a class="btn" href="https://github.com/dazrave/stoke-back-mountain" target="_blank" rel="noopener">See the code on GitHub →</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="modes">
+    <h2>What we play</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>🧟 28 Frags Later</h3>
+        <p>Wave-based horde survival. One hit and you're gone. Shamblers shuffle,
+           runners sprint, and one in twenty is a copper carrying spare ammo.
+           They flank, jump off roofs, and haul you out of a slowing car.</p>
+      </article>
+      <article class="card">
+        <h3>🚐 The Campaign</h3>
+        <p>A Shaun of the Dead-shaped road trip. The pub's dry, there's a boat at
+           dawn, and twenty miles of infected in between. Fuel runs out, mates go
+           down, and a burning plane occasionally lands on the road ahead.</p>
+      </article>
+      <article class="card">
+        <h3>🚓 Scrap Run</h3>
+        <p>One fugitive on a dirt bike, everyone else is police. Line-of-sight GPS,
+           999 calls when you nick a car out of sight, a helicopter whose only job
+           is keeping eyes on you. Tyres, not heads.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="how">
+    <h2>How it actually works</h2>
+    <ol class="steps">
+      <li><span>1</span> We play, and we shout ideas — out loud, or into the box below.</li>
+      <li><span>2</span> An AI reads them, works out what we were really after, and writes it up.</li>
+      <li><span>3</span> We give it a quick look, and it builds and deploys the change to the live server.</li>
+      <li><span>4</span> We're playing the new version minutes later. Sometimes it's exactly what we asked for.</li>
+    </ol>
+  </section>
+
+  <section id="idea" class="idea">
+    <h2>Pitch an idea</h2>
+    <p class="idea-blurb">
+      A new mode, a twist on an old one, a mechanic, or just chaos. Every idea
+      gets read, tidied up by the AI, and queued for the next build. The dafter
+      the better — half the entertainment is watching how it gets interpreted.
+    </p>
+
+    <form id="idea-form" novalidate>
+      <label class="field">
+        <span>Your idea</span>
+        <textarea name="idea" rows="4" maxlength="1500" required
+          placeholder="e.g. a mode where one player is a zombie 'patient zero' who has to infect everyone else before sunrise…"></textarea>
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>Name <em>(optional)</em></span>
+          <input name="name" type="text" maxlength="40" placeholder="what should we credit you as?">
+        </label>
+        <label class="field">
+          <span>Which mode?</span>
+          <select name="mode">
+            <option value="any">Doesn't matter / a new one</option>
+            <option value="infected">The horde</option>
+            <option value="pint">The campaign</option>
+            <option value="chase">Cops &amp; robbers</option>
+            <option value="squadmate">The AI mate</option>
+            <option value="new-mode">A brand new mode</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- bots love an empty field; humans never see this one -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+
+      <button type="submit" class="btn primary">Send it in</button>
+      <p id="idea-status" class="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p>
+    Built live by <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a>.
+    Open source on <a href="https://github.com/dazrave/stoke-back-mountain" target="_blank" rel="noopener">GitHub</a>.
+    No affiliation with Rockstar Games.
+  </p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

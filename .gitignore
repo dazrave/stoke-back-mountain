@@ -18,3 +18,6 @@ tools/earshot/.venv/
 tools/earshot/queue/
 transcripts/
 tools/earshot/.telemetry-cache.jsonl
+
+# SBM web: public submissions and triage drafts (live on the server)
+web/submissions/

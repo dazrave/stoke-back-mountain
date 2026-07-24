@@ -1,0 +1,25 @@
+# Install on the game-server box:
+#   cp sbm-web.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now sbm-web
+[Unit]
+Description=Stoke Back Mountain cover page + idea box
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/sbm-web
+Environment=SBM_PORT=8099
+Environment=SBM_DATA=/opt/sbm-web/submissions
+ExecStart=/usr/bin/python3 /opt/sbm-web/server.py
+Restart=on-failure
+RestartSec=5
+# It only serves a page and appends to a file; give it nothing else.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/sbm-web/submissions
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
