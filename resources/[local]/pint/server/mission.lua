@@ -324,6 +324,7 @@ RegisterNetEvent('pint:died', function(coords)
     }
     setState({ downed = downed })
 
+    TriggerEvent('telemetry:mark', ('pint:DOWN %s'):format(downed[source].name))
     tell(('%s is DOWN. %d seconds to reach them.'):format(downed[source].name, Config.reviveSeconds))
 end)
 
@@ -344,6 +345,7 @@ RegisterNetEvent('pint:tryRevive', function(targetId)
     setState({ downed = downed })
 
     TriggerClientEvent('pint:revived', targetId, { x = entry.x, y = entry.y, z = entry.z })
+    TriggerEvent('telemetry:mark', ('pint:REVIVED %s'):format(entry.name))
     tell(('%s dragged %s back up.'):format(GetPlayerName(source) or 'Someone', entry.name))
 end)
 
@@ -649,7 +651,9 @@ CreateThread(function()
                 local players = GetPlayers()
                 if #players > 0 then
                     local target = players[math.random(#players)]
-                    TriggerClientEvent('pint:moment', tonumber(target), table.remove(queue))
+                    local moment = table.remove(queue)
+                    TriggerClientEvent('pint:moment', tonumber(target), moment)
+                    TriggerEvent('telemetry:mark', 'moment:' .. moment)
                 end
             end
         end

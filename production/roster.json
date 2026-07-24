@@ -1,0 +1,13 @@
+{
+  "_comment": "Who's who, for the editing pipeline. Maps each mate across the three things the cut-list needs to line up: their Discord audio track (Craig names files by Discord user), their in-game name (telemetry logs this on every mark/sample), the capture angle/rig their POV is on, and a colour for captions/lower-thirds. Same crew each week, so this is a small static file you nudge when someone new joins. Fill in the real values before the first shoot.",
+  "crew": [
+    { "discord": "Darren",  "fivem": "DazRave",   "angle": "director-1", "colour": "#f5c842" },
+    { "discord": "Jacob",   "fivem": "JacobSBM",  "angle": "player",     "colour": "#5aa9ff" },
+    { "discord": "Rory",    "fivem": "Roryyy",    "angle": "player",     "colour": "#58c777" }
+  ],
+  "angles": {
+    "director-1": "Spare PC A — director cam (auto-follow the action)",
+    "director-2": "Spare PC B — director cam (second angle / wide)",
+    "player":     "the mate's own machine, their POV"
+  }
+}

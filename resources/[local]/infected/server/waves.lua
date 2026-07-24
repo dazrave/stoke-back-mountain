@@ -101,6 +101,7 @@ local function startWave()
     end
 
     print(('[infected] wave %d: %d infected across %d players'):format(wave, total, #players))
+    TriggerEvent('telemetry:mark', ('horde:wave %d — %d infected'):format(wave, total))
     broadcastState()
 
     return true
@@ -162,10 +163,12 @@ CreateThread(function()
             if state.wave > 0 then
                 TriggerClientEvent('infected:waveCleared', -1, state.wave)
                 print(('[infected] wave %d cleared'):format(state.wave))
+                TriggerEvent('telemetry:mark', ('horde:wave %d cleared'):format(state.wave))
 
                 if state.wave > record.bestWave then
                     record = { bestWave = state.wave, set = os.date('%Y-%m-%d') }
                     SaveResourceFile(GetCurrentResourceName(), 'record.json', json.encode(record), -1)
+                    TriggerEvent('telemetry:mark', ('horde:NEW RECORD wave %d'):format(state.wave))
                     TriggerClientEvent('chat:addMessage', -1, {
                         color = { 255, 180, 0 },
                         args  = { 'infected', ('NEW RECORD: wave %d cleared!'):format(state.wave) },
@@ -354,8 +357,10 @@ CreateThread(function()
         if state.running then
             local players = GetPlayers()
             if #players > 0 then
+                local moment = names[math.random(#names)]
                 TriggerClientEvent('pint:moment',
-                    tonumber(players[math.random(#players)]), names[math.random(#names)])
+                    tonumber(players[math.random(#players)]), moment)
+                TriggerEvent('telemetry:mark', 'moment:' .. moment)
             end
         end
     end
