@@ -3,7 +3,7 @@ game 'gta5'
 
 name 'chase'
 description 'Scrap Run - one fugitive, everyone else is police. Line-of-sight manhunt.'
-author 'Stoke Back Mountain'
+author 'Stokeback Mountain'
 version '0.1.0'
 
 shared_script 'config.lua'

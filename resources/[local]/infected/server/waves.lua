@@ -231,12 +231,14 @@ end)
 
 exports('getState', function()
     return {
-        running = state.running,
-        wave    = state.wave,
-        kills   = state.kills,
-        alive   = state.alive,
-        spawned = state.spawned,
-        dead    = state.dead,
+        running   = state.running,
+        wave      = state.wave,
+        kills     = state.kills,
+        alive     = state.alive,
+        spawned   = state.spawned,
+        dead      = state.dead,
+        intensity = state.intensity,
+        engaged   = (state.running or state.engagedExt) and true or false,
     }
 end)
 

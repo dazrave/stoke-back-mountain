@@ -1,4 +1,4 @@
-# Stoke Back Mountain
+# Stokeback Mountain
 
 Custom co-op game modes for **GTA V / FiveM**, built for a load of mates and a
 weekly game night.

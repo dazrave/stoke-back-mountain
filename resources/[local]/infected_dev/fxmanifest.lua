@@ -3,7 +3,7 @@ game 'gta5'
 
 name 'infected_dev'
 description 'Testing tools for the infected mode. Stop this resource for game night.'
-author 'Stoke Back Mountain'
+author 'Stokeback Mountain'
 version '0.1.0'
 
 dependency 'infected'

@@ -212,6 +212,17 @@ AddEventHandler('playerDropped', function()
     end
 end)
 
+exports('getState', function()
+    local tracking = state.lastSeen ~= nil
+        and (GetGameTimer() - state.lastSeenAt) < Config.sight.holdMs
+
+    return {
+        phase    = state.phase,
+        fugitive = state.fugitiveName,
+        tracking = tracking and true or false,
+    }
+end)
+
 RegisterCommand('chase', function(source, args)
     local action = args[1] or 'start'
 

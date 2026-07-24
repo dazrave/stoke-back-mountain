@@ -67,7 +67,7 @@ end
 
 CreateThread(function()
     while true do
-        Wait(60000)
+        Wait(20000)
         flush()
     end
 end)
@@ -140,3 +140,84 @@ RegisterCommand('resetgame', function()
         })
     end)
 end, false)
+
+
+-- ===== live positions + periodic state snapshots =====
+-- The positions relay also drives the mate radar (it was lost in an earlier
+-- rewrite, so the radar has been dead). On top of it, a state snapshot every
+-- few seconds records the whole board - mode, mission, wave, and where everyone
+-- was - so an overheard "the zombies are too fast" can be filed alongside the
+-- exact situation that prompted it.
+local positions = {}
+
+RegisterNetEvent('telemetry:ping', function(pos)
+    local source = source
+    if type(pos) ~= 'table' or type(pos.x) ~= 'number' then return end
+
+    positions[source] = {
+        id = source, name = GetPlayerName(source) or ('#' .. tostring(source)),
+        x = pos.x, y = pos.y, z = pos.z,
+        v = pos.v and true or false,
+        d = pos.d and true or false,
+        at = os.time(),
+    }
+end)
+
+AddEventHandler('playerDropped', function()
+    positions[source] = nil
+end)
+
+CreateThread(function()
+    while true do
+        Wait(4000)
+
+        local list = {}
+        for _, p in pairs(positions) do
+            list[#list + 1] = { id = p.id, name = p.name, x = p.x, y = p.y, z = p.z }
+        end
+
+        if #list > 0 then
+            TriggerClientEvent('telemetry:mates', -1, list)
+        end
+    end
+end)
+
+-- Ask another resource for its state without caring whether it is running.
+local function modeState(resource, fn)
+    local ok, result = pcall(function()
+        return exports[resource][fn]()
+    end)
+    return ok and result or nil
+end
+
+CreateThread(function()
+    while true do
+        Wait(8000)
+
+        local now     = os.time()
+        local players = {}
+
+        for _, p in pairs(positions) do
+            if (now - (p.at or 0)) < 20 then
+                players[#players + 1] = {
+                    name = p.name,
+                    x = math.floor(p.x * 10) / 10,
+                    y = math.floor(p.y * 10) / 10,
+                    z = math.floor(p.z * 10) / 10,
+                    v = p.v, d = p.d,
+                }
+            end
+        end
+
+        if #players > 0 then
+            append({
+                t       = now,
+                kind    = 'state',
+                horde   = modeState('infected', 'getState'),
+                mission = modeState('pint', 'getState'),
+                chase   = modeState('chase', 'getState'),
+                players = players,
+            })
+        end
+    end
+end)

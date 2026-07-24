@@ -84,8 +84,13 @@ CreateThread(function()
     while true do
         Wait(4000)
 
-        local pos = GetEntityCoords(PlayerPedId())
-        TriggerServerEvent('telemetry:ping', { x = pos.x, y = pos.y, z = pos.z })
+        local ped = PlayerPedId()
+        local pos = GetEntityCoords(ped)
+        TriggerServerEvent('telemetry:ping', {
+            x = pos.x, y = pos.y, z = pos.z,
+            v = GetVehiclePedIsIn(ped, false) ~= 0, -- in a vehicle
+            d = IsEntityDead(ped),                  -- down / dead
+        })
     end
 end)
 
@@ -175,7 +180,7 @@ CreateThread(function()
         SetTextColour(255, 220, 120, 220)
         SetTextOutline()
         BeginTextCommandDisplayText('STRING')
-        AddTextComponentSubstringPlayerName('~y~STOKE BACK MOUNTAIN')
+        AddTextComponentSubstringPlayerName('~y~STOKEBACK MOUNTAIN')
         EndTextCommandDisplayText(0.015, y)
 
         y = y + 0.024

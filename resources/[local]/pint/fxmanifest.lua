@@ -3,7 +3,7 @@ game 'gta5'
 
 name 'pint'
 description 'A Nice Cold Pint - get to the Yellow Jack, have a pint, wait for all this to blow over.'
-author 'Stoke Back Mountain'
+author 'Stokeback Mountain'
 version '0.1.0'
 
 dependency 'infected'

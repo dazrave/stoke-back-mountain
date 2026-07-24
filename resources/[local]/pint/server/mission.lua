@@ -656,6 +656,26 @@ CreateThread(function()
     end
 end)
 
+-- Read by the telemetry snapshot so an overheard request can be filed with
+-- the mission and stage that were live when it was said.
+exports('getState', function()
+    local mission = state.mission and Config.missions[state.mission] or nil
+    local stage   = mission and mission.stages[state.stageIndex] or nil
+
+    local downed = 0
+    for _ in pairs(state.downed or {}) do downed = downed + 1 end
+
+    return {
+        active     = state.active and true or false,
+        mission    = state.mission,
+        stageIndex = state.stageIndex,
+        stageId    = stage and stage.id or nil,
+        stageTitle = stage and stage.title or nil,
+        securing   = state.securing and true or false,
+        downed     = downed,
+    }
+end)
+
 RegisterCommand('pint', function(source, args)
     local action = args[1] or 'start'
 
