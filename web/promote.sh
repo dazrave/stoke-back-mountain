@@ -8,7 +8,7 @@
 # The draft is a markdown file with YAML front matter: title, labels, from.
 set -euo pipefail
 
-REPO="${REPO:-dazrave/stoke-back-mountain}"
+REPO="${REPO:-dazrave/stokeback-gtai}"
 DRAFT="${1:?usage: promote.sh <draft.md>}"
 
 [[ -f "$DRAFT" ]] || { echo "no such draft: $DRAFT" >&2; exit 1; }
