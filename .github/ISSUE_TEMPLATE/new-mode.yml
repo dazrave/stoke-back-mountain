@@ -1,0 +1,37 @@
+name: "🎮 New game mode"
+description: A brand-new game type to play, not a change to an existing one.
+labels: ["new-mode", "needs-human"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A whole new mode (like the horde, the campaign or the chase). These are
+        never auto-implemented — they need a person — but the more of this you
+        fill in, the closer the first playable version will be.
+  - type: input
+    id: pitch
+    attributes:
+      label: One-line pitch
+      placeholder: "Hide and seek, but the seekers are zombies and the hiders have one torch between them."
+    validations:
+      required: true
+  - type: textarea
+    id: loop
+    attributes:
+      label: The core loop
+      description: What do players actually do, minute to minute? How does a round start and end?
+    validations:
+      required: true
+  - type: textarea
+    id: win
+    attributes:
+      label: How do you win, and how do you lose?
+    validations:
+      required: true
+  - type: textarea
+    id: reuse
+    attributes:
+      label: What can it borrow?
+      description: Which existing bits (fuel, revives, AI police, the moments director, the horde) could it reuse?
+    validations:
+      required: false

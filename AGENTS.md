@@ -1,9 +1,14 @@
 # Agent brief
 
-Read this before implementing any issue. Each issue in this repo is a request
-overheard from three mates playing the game, turned into a prompt for you. Your
-job is to make the change they'd have wanted — not merely the change the words
-literally describe.
+Read this before implementing any issue. Each issue in this repo is either a
+request overheard from three mates playing the game, or one they filed by hand
+during the week. Your job is to make the change they'd have wanted — not merely
+the change the words literally describe.
+
+Issues are labelled on three axes: a **type** (`new-mode`, `enhance`, `feature`,
+`balance`, `bug`, `chore`), a **mode** (`mode:infected`, `mode:pint`,
+`mode:chase`, `mode:squadmate`, `mode:meta`), and a **handling** label. Only pick
+up `auto`; leave `needs-human` and `unclear` for a person.
 
 ## What this is
 
@@ -29,7 +34,7 @@ The **only** things you may refuse or downgrade to a human:
 - anything that wipes player progress, deletes data, or takes the server down
 - anything needing a new **map coordinate** you can't verify (you cannot see the
   map — a guessed coordinate puts cars inside buildings and players in the sky;
-  this has happened repeatedly). File those back as `design` and stop.
+  this has happened repeatedly). Relabel those `needs-human` and stop.
 
 **Keep it playable.** A change that crashes the client or breaks a mode mid-session
 ruins the evening. When in doubt, make the smaller change.

@@ -1,0 +1,47 @@
+name: "🔧 Change to an existing mode"
+description: Enhance, add a feature to, or rebalance a mode that already exists.
+labels: ["enhance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Anything that changes a mode we already play. Pick the closest type and
+        mode below — a maintainer or the agent will fine-tune the labels. Small,
+        clear number changes get an `auto` label and may be applied unattended.
+  - type: dropdown
+    id: type
+    attributes:
+      label: What kind of change?
+      options:
+        - "enhance — expand or improve how it plays"
+        - "feature — a new mechanic or system inside the mode"
+        - "balance — just tuning: numbers, timers, difficulty, feel"
+        - "bug — something is broken"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Which mode?
+      options:
+        - "infected — the horde"
+        - "pint — the campaign"
+        - "chase — cops and robbers"
+        - "squadmate — the AI mate"
+        - "meta — telemetry, tooling, repo"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What should change?
+      description: What's wrong or missing now, and what should it be instead?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What are you actually trying to achieve?
+      description: The goal behind the request. This is what stops it being implemented too literally.
+    validations:
+      required: false

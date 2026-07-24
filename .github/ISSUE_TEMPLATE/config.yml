@@ -1,0 +1,6 @@
+# Freeform issues are still allowed — the templates are a convenience, not a gate.
+blank_issues_enabled: true
+contact_links:
+  - name: How labels work
+    url: https://github.com/dazrave/stoke-back-mountain/blob/main/AGENTS.md
+    about: The label taxonomy and how an issue becomes a deployed change.

@@ -89,17 +89,38 @@ chase speed override in `infected/client/behaviour.lua`.
 Read `AGENTS.md` yourself before writing issues, so the "what they're after" line
 is grounded in what the project is actually trying to be.
 
-Label each one:
+## Label it
+
+Pick one **type**, one **mode**, and one **handling** label.
+
+**Type — what kind of work:**
 
 | Label | Meaning |
 |---|---|
-| `auto` | Numbers, timers, distances, text, on/off flags. Safe to apply unattended. |
-| `design` | New mechanics or anything spanning resources. Needs a human. |
-| `unclear` | Might not even be a request. Filed for a human to read. |
+| `new-mode` | A brand-new game type. |
+| `enhance` | Expand or improve an existing mode. |
+| `feature` | A new mechanic or system inside a mode. |
+| `balance` | Tuning: numbers, timers, difficulty, feel. |
 | `bug` | Something is broken. |
+| `chore` | Docs, tooling, refactor, infra. |
+
+**Mode — which part:** `mode:infected` · `mode:pint` · `mode:chase` ·
+`mode:squadmate` · `mode:meta`.
+
+**Handling — how it gets actioned:**
+
+| Label | Meaning |
+|---|---|
+| `auto` | Numbers, timers, text, on/off flags in a known file. Safe to implement unattended. |
+| `needs-human` | New map coordinates, cross-cutting changes, anything risky. |
+| `unclear` | Might not even be a request. Filed for a person to read. |
+
+`new-mode` is always `needs-human`. A `balance` tweak in a known config is almost
+always `auto`.
 
 ```bash
-gh issue create --title "..." --body "..." --label auto
+gh issue create --title "..." --body "..." \
+  --label balance --label mode:infected --label auto
 ```
 
 ## House rule: do not seek clarification
