@@ -1,6 +1,6 @@
 # Stoke Back Mountain
 
-Custom co-op game modes for **GTA V / FiveM**, built for three mates and a
+Custom co-op game modes for **GTA V / FiveM**, built for a loadf of mates and a
 weekly game night.
 
 The unusual part: **almost all of this was written live, mid-session, by
