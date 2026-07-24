@@ -58,6 +58,13 @@ One issue per idea. Title as an imperative. Body must contain the **verbatim
 quote and who said it** (the exact wording matters later, and it's funnier),
 plus the enrichment block.
 
+Every issue is a prompt for another agent that will read
+[`AGENTS.md`](../../AGENTS.md) and implement it. So write the issue as a brief,
+not just a quote: say what they were trying to *achieve*, and point at the lever
+if you can find it (the levers table in `AGENTS.md` maps intent → file). You have
+the whole codebase in front of you; the implementing agent will too, but a
+pointer saves it a search and keeps the change aimed at the right knob.
+
 ```markdown
 **Overheard:** "can we make the shamblers a bit slower, they're catching us in the van" — Jacob, 21:14
 
@@ -68,10 +75,19 @@ plus the enrichment block.
   - Rory @ (1048, 2665, 39) — on foot
   - Darren @ (1041, 2670, 39) — DOWN
 
-**Change:** reduce shambler moveRate in `resources/[local]/infected/client/archetypes.lua`.
+**What they're after:** the van can't outrun shamblers, which shouldn't happen —
+shamblers are meant to be the slow, relentless threat you *can* escape by driving.
+Likely they're catching up because of the vehicle-chase speed floor, not the base
+walk speed. Worth checking both.
 
-**Confidence:** clear — a specific number in a known file.
+**Likely lever:** `infected/client/archetypes.lua` shambler `moveRate`, and the
+chase speed override in `infected/client/behaviour.lua`.
+
+**Confidence:** clear intent, two possible knobs — see AGENTS.md gotchas.
 ```
+
+Read `AGENTS.md` yourself before writing issues, so the "what they're after" line
+is grounded in what the project is actually trying to be.
 
 Label each one:
 
