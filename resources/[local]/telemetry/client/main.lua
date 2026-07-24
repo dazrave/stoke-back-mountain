@@ -30,6 +30,33 @@ CreateThread(function()
     end
 end)
 
+-- ===== clapperboard flash =====
+-- A sync point the camera can see. When the server fires a clap, the whole
+-- screen goes white for a beat (visible in every OBS capture) and a beep plays
+-- (useful where game audio is recorded). Editors line the flashes up to sync
+-- every angle to the same instant.
+local flashUntil = 0
+
+CreateThread(function()
+    while true do
+        if GetGameTimer() < flashUntil then
+            DrawRect(0.5, 0.5, 1.0, 1.0, 255, 255, 255, 255)
+            Wait(0)
+        else
+            Wait(80)
+        end
+    end
+end)
+
+RegisterNetEvent('telemetry:sync', function(n)
+    flashUntil = GetGameTimer() + 130 -- ~a tenth of a second of pure white
+    PlaySoundFrontend(-1, 'Beep_Red', 'DLC_HEIST_HACKING_SNAKE_SOUNDS', true)
+
+    BeginTextCommandThefeedPost('STRING')
+    AddTextComponentSubstringPlayerName(('~y~CLAP #%d~w~ — synced'):format(n or 0))
+    EndTextCommandThefeedPostTicker(false, true)
+end)
+
 -- Part of /resetgame: everyone gets a clean respawn at a normal map spawn.
 RegisterNetEvent('telemetry:respawn', function(at, index)
     DoScreenFadeOut(400)

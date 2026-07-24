@@ -72,6 +72,41 @@ CreateThread(function()
     end
 end)
 
+-- ===== clapperboard =====
+-- One trigger that leaves a sync point in every recording at once: a white
+-- screen flash (seen in every video angle), a beep (heard where game audio is
+-- captured), and a logged marker at the exact time. The editor lines the
+-- flashes up and every angle shares a zero point; audio tracks then align to
+-- the logged time via wall clock. Run /clap at the top of the session - it also
+-- fires once automatically when the first person turns up, so a session always
+-- has at least one sync point.
+local clapCount = 0
+
+local function clap(reason)
+    clapCount = clapCount + 1
+    append({ kind = 'sync', t = os.time(), n = clapCount, why = reason or 'manual' })
+    flush() -- persist the sync marker immediately, don't wait for the 20s flush
+    TriggerClientEvent('telemetry:sync', -1, clapCount)
+    TriggerClientEvent('chat:addMessage', -1, {
+        color = { 245, 200, 66 },
+        args  = { 'clap', ('CLAP #%d — sync marker logged'):format(clapCount) },
+    })
+    print(('[telemetry] clap #%d (%s) at %d'):format(clapCount, reason or 'manual', os.time()))
+end
+
+RegisterCommand('clap', function() clap('manual') end, false)
+
+CreateThread(function()
+    while true do
+        Wait(3000)
+        if clapCount == 0 and #GetPlayers() > 0 then
+            Wait(2000)
+            clap('auto-session-start')
+            return
+        end
+    end
+end)
+
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end
     flush()
