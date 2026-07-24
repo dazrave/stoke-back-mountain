@@ -17,3 +17,4 @@ tools/earshot/node_modules/
 tools/earshot/.venv/
 tools/earshot/queue/
 transcripts/
+tools/earshot/.telemetry-cache.jsonl

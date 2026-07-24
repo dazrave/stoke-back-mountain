@@ -35,6 +35,10 @@ def main() -> None:
         print("(no transcript yet)")
         return
 
+    # --json emits the raw entries (with the ISO `t` each line needs for
+    # context.py); the default is the human-readable form.
+    as_json = "--json" in sys.argv
+
     lines = []
     latest = None
 
@@ -49,10 +53,13 @@ def main() -> None:
             continue
 
         latest = when
-        lines.append(f"[{when.strftime('%H:%M:%S')}] {entry['speaker']}: {entry['text']}")
+        if as_json:
+            lines.append(json.dumps(entry, ensure_ascii=False))
+        else:
+            lines.append(f"[{when.strftime('%H:%M:%S')}] {entry['speaker']}: {entry['text']}")
 
     if not lines:
-        print("(nothing said in the last %g minutes)" % minutes)
+        print("[]" if as_json else "(nothing said in the last %g minutes)" % minutes)
         return
 
     print("\n".join(lines))

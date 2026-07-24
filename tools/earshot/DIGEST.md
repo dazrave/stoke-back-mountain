@@ -30,14 +30,43 @@ it is not a request. Find the bits that are, and file them as GitHub issues.
 - things already filed this session — check open issues first
 - speculation nobody agreed with, or a joke everyone talked over
 
+## Read the window as JSON
+
+```bash
+cd tools/earshot && ./recent.py 5 --json
+```
+
+Each line is `{"t": "...", "speaker": "...", "text": "..."}`. The `t` is what
+you feed the enrichment step.
+
+## Enrich every issue with what was happening
+
+For each utterance you're about to file, pass its `t` to `context.py`:
+
+```bash
+./context.py "2026-07-24T21:14:03+00:00"
+```
+
+It prints the game state at that moment — mode, mission, stage, wave,
+difficulty, and where every player was standing. **Always include this**: an
+issue is far more useful when it says the request came in while the speaker was
+in a vehicle at the observatory on wave 5, not just "make it slower".
+
 ## How to write them
 
 One issue per idea. Title as an imperative. Body must contain the **verbatim
-quote and who said it**, because the exact wording matters later — and because
-it's funnier.
+quote and who said it** (the exact wording matters later, and it's funnier),
+plus the enrichment block.
 
 ```markdown
 **Overheard:** "can we make the shamblers a bit slower, they're catching us in the van" — Jacob, 21:14
+
+**At the time (21:14:03 UTC):**
+- Mode: pint / lastorders — stage 2 "FILL UP AT HARMONY" (securing)
+- Players:
+  - Jacob @ (1040, 2672, 39) — in a vehicle
+  - Rory @ (1048, 2665, 39) — on foot
+  - Darren @ (1041, 2670, 39) — DOWN
 
 **Change:** reduce shambler moveRate in `resources/[local]/infected/client/archetypes.lua`.
 
