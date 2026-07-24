@@ -1,0 +1,12 @@
+# The FiveM licence key lives here. Never commit it.
+secrets.cfg
+
+# Runtime state and recordings
+resources/[local]/telemetry/data-*.jsonl
+resources/[local]/infected/record.json
+cache/
+
+# Working copies left behind by live patching
+*.bak
+*.bak-*
+*.bak[0-9]

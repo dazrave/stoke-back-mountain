@@ -1,0 +1,117 @@
+-- Objective line, fuel gauge, holdout clock and the big shard messages.
+PintHUD = {}
+
+local state = {
+    objective = nil, distance = nil, fuel = nil, refuelling = false,
+    holdout = nil, gather = nil, regroup = nil, missionName = nil,
+    secure = nil, secureHeld = false,
+}
+
+-- Merge-set. Pass '__clear' to null a field out (plain nil would just be
+-- skipped by pairs()).
+function PintHUD.set(next)
+    local merged = {}
+    for key, value in pairs(state) do merged[key] = value end
+    for key, value in pairs(next) do
+        if value == '__clear' then
+            merged[key] = nil
+        else
+            merged[key] = value
+        end
+    end
+    state = merged
+end
+
+local function drawText(text, x, y, scale)
+    SetTextFont(4)
+    SetTextScale(scale or Config.hud.scale, scale or Config.hud.scale)
+    SetTextColour(255, 255, 255, 220)
+    SetTextOutline()
+
+    BeginTextCommandDisplayText('STRING')
+    AddTextComponentSubstringPlayerName(text)
+    EndTextCommandDisplayText(x, y)
+end
+
+local function fuelColour(fuel)
+    if fuel > 50 then return '~g~' end
+    if fuel > 20 then return '~y~' end
+    return '~r~'
+end
+
+CreateThread(function()
+    while true do
+        -- Mission title, small and grey above the objective - the single-player
+        -- "you are in a mission" anchor.
+        if state.missionName then
+            drawText('~c~' .. state.missionName, Config.hud.objX, Config.hud.objY - 0.033, 0.38)
+        end
+
+        if state.objective then
+            local line = '~y~' .. state.objective
+
+            if state.holdout then
+                line = ('~y~%s ~w~- %d:%02d'):format(
+                    state.objective, math.floor(state.holdout / 60), state.holdout % 60)
+            elseif state.distance then
+                line = ('~y~%s ~w~- %s'):format(state.objective, state.distance)
+            end
+
+            if state.secure then
+                line = ('~y~%s ~w~- ~r~SECURE THE AREA %ds%s'):format(
+                    state.objective, state.secure, state.secureHeld and ' ~o~(HELD)' or '')
+            end
+
+            if state.gather then
+                line = line .. ('  ~g~[%s loaded]'):format(state.gather)
+            end
+            if state.regroup then
+                line = line .. ('  ~b~[%s there]'):format(state.regroup)
+            end
+
+            drawText(line, Config.hud.objX, Config.hud.objY)
+        end
+
+        if state.fuel then
+            local text = state.refuelling
+                and ('~b~REFUELLING %d%%'):format(state.fuel)
+                or ('FUEL %s%d%%'):format(fuelColour(state.fuel), state.fuel)
+
+            drawText(text, Config.hud.fuelX, Config.hud.fuelY)
+        end
+
+        Wait(0)
+    end
+end)
+
+function PintHUD.notify(message)
+    BeginTextCommandThefeedPost('STRING')
+    AddTextComponentSubstringPlayerName(message)
+    EndTextCommandThefeedPostTicker(false, true)
+end
+
+-- The big cinematic banner (GTA's "shard") for mission start and the win.
+function PintHUD.shard(title, subtitle)
+    CreateThread(function()
+        local movie = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE')
+
+        local deadline = GetGameTimer() + 5000
+        while not HasScaleformMovieLoaded(movie) do
+            if GetGameTimer() > deadline then return end
+            Wait(0)
+        end
+
+        BeginScaleformMovieMethod(movie, 'SHOW_SHARD_WASTED_MP_MESSAGE')
+        ScaleformMovieMethodAddParamPlayerNameString(title)
+        ScaleformMovieMethodAddParamPlayerNameString(subtitle or '')
+        EndScaleformMovieMethod()
+
+        local showUntil = GetGameTimer() + 6000
+        while GetGameTimer() < showUntil do
+            DrawScaleformMovieFullscreen(movie, 255, 255, 255, 255, 0)
+            Wait(0)
+        end
+
+        SetScaleformMovieAsNoLongerNeeded(movie)
+    end)
+end

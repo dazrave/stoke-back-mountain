@@ -1,0 +1,152 @@
+# Stoke Back Mountain
+
+Custom co-op game modes for **GTA V / FiveM**, built for three mates and a
+weekly game night.
+
+The unusual part: **almost all of this was written live, mid-session, by
+[Claude Code](https://claude.com/claude-code)** — while the three of us were
+in-game playing it. Someone says "the zombies should drag us out of the car",
+and a few minutes later the zombies drag us out of the car. Occasionally they
+do something else entirely, which is most of the fun.
+
+Nothing here is a serious roleplay server. It is a pub, an apocalypse, and a
+police chase.
+
+---
+
+## The game modes
+
+### 🧟 `infected` — "28 Frags Later"
+
+Wave-based horde survival. One hit and you're gone.
+
+- **Three archetypes** — the *Shambler* (drunk shuffle, slow, relentless), the
+  *Runner* (fast, straightforward), and the *Stalker*, which shuffles in like a
+  shambler and then breaks into a dead sprint at 25 metres.
+- **Brutes** lead every fifth wave: 2,500 HP, headshot-immune, red blip.
+- One in twenty infected is a **copper** in LSPD uniform carrying spare
+  magazines — visibly different, so you can pick your target in a crowd.
+- Zombies **flank**, funnel through doorways behind whichever one worked out the
+  route, **jump off roofs**, refuse to use ladders, and **drag you out of a
+  moving car**.
+- You cannot escape by running: outrun one and it is recycled back into the
+  chase out of sight.
+- Permanent night and fog while the apocalypse is engaged; the city empties.
+
+### 🍺 `pint` — the campaign
+
+A Shaun of the Dead-shaped story campaign layered on top of the horde. Missions
+are pure data, so a new episode is a config entry.
+
+| Episode | Shape | The gist |
+|---|---|---|
+| **Last Orders** | A→B road trip | The pub ran dry. There's a boat at Del Perro Pier at dawn. Twenty miles of infected in between, and the waves get worse the nearer the city you get. |
+| **Departures** | Gather & return | There's a plane at LSIA. There's no fuel in it. Five jerry cans, all guarded, all across the airport. |
+| **Water Landing** | Split up & regroup | The plane made it seventy miles. Everyone washes ashore *alone* along Paleto Bay at night and has to walk to the pub. |
+
+Featuring: a **synced fuel system** (every car has a tank, and they cough when
+they're low), **jerry cans you carry by hand**, a car each so the drive is a
+race, guarded **ammo stashes**, checkpoint objectives you have to *hold*, and a
+**down-but-not-dead** revive system where a mate has to stand over you for five
+seconds while the horde arrives.
+
+Plus a **moments director**: every minute or so, somebody gets a scripted
+disaster near them — a burning plane comes down, a car full of infected piles
+into a wall while the driver flees screaming, a bloke sprints at you shouting
+for help and then gets back up wrong.
+
+### 🚓 `chase` — "Scrap Run"
+
+One fugitive on a dirt bike, everyone else is police. Ten minute rounds.
+
+- **Line-of-sight tracking** — a copper with eyes on you gives the whole force a
+  live GPS lock for ten seconds. Break the sightline and it decays to a
+  last-known-position dot with a **search radius that grows** the longer you stay
+  hidden.
+- The helicopter sees twice as far as anyone on the ground. Its whole job is
+  keeping eyes on.
+- **Crimes get reported** — nick a car out of sight and a "999 call" pings the
+  map a few seconds later with the model and the street. Drive badly and
+  witnesses phone that in too. Drive *cleanly* and stay invisible.
+- **Armed AI units** join the pursuit, sirens up. Losing your tail slows
+  reinforcements rather than stopping them.
+- Endings: **clean getaway**, **nicked** (stand over them and cuff them), or
+  wrapping the bike round a lamppost.
+
+### 🤖 `squadmate` — your AI mate
+
+One AI companion each. Follow, hold, be aggressive, copy your weapon, or fetch a
+jerry can. He gets in the car with you — but if you drive off without him,
+**he's left behind**, and he's a mediocre shot at the best of times.
+
+---
+
+## Commands
+
+```
+/pint start lastorders|departures|waterlanding    the campaign
+/horde start|stop|reset          sandbox horde     /wave [n]
+/chase start|stop                cops and robbers
+/score                           kill leaderboard
+/resetgame                       full reset, respawn everyone somewhere random
+```
+
+**Keys:** `F6` follow · `F7` aggressive · `F9` hold · `F10` respawn squadmate ·
+`F11` give him your weapon · `G` fetch a jerry can · `E` interact.
+
+---
+
+## Layout
+
+```
+resources/[local]/
+├── infected/      the horde: spawning, behaviour, waves, carjacking
+├── pint/          the campaign: missions, fuel, moments, revives
+├── chase/         cops and robbers: sight tracking, AI police, reports
+├── squadmate/     the AI companion
+├── infected_dev/  dev tools (god, noclip, wave control) — off for game night
+└── telemetry/     route recording, player list, /resetgame
+```
+
+Each resource is config-first: `config.lua` holds every tunable, and the
+behaviour files avoid hardcoding numbers.
+
+## Running it
+
+Requires a [FiveM server](https://docs.fivem.net/docs/server-manual/setting-up-a-server/)
+with `cfx-server-data`. Drop `resources/[local]/*` into your server's resources
+folder and use the included `server.cfg` as a starting point.
+
+Your FiveM licence key goes in `secrets.cfg` (git-ignored, `exec`'d from
+`server.cfg`) — never in the repo.
+
+```bash
+scripts/deploy.sh infected pint     # push + hot-reload named resources
+```
+
+## Notable things learned the hard way
+
+A running list, because most of these cost an evening:
+
+- **Relationship groups don't sync between clients.** A ped's group is set by
+  whoever spawned it; every other machine sees a default. Any cross-client check
+  has to use entity **decors**, which do sync. This one silently broke the
+  carjacking for days.
+- **`TaskEnterVehicle`'s timeout warps the ped in when it expires.** Pass `-1`
+  or your AI teleports into the car instead of running to it.
+- **A single ground probe after a teleport fails**, because the map hasn't
+  streamed in yet — and leaves the player standing in the sky. Retry until
+  collision loads.
+- **`CPointRoute` has forty slots for the entire game.** Every ped on a navmesh
+  task holds one, and exhausting it hard-crashes the client. Budget them.
+- **FiveM disables player-vs-player damage by default.** Without
+  `NetworkSetFriendlyFireOption`, bullets pass through players *and* their
+  vehicles, so nothing takes damage and nothing makes sense.
+- **A drunk movement clipset caps the gait**, so a "sprinting" zombie in one
+  will still shuffle.
+- **Re-issuing a task every tick restarts its animation**, which reads in-game
+  as the AI standing still doing nothing.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
