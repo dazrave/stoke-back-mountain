@@ -21,3 +21,6 @@ tools/earshot/.telemetry-cache.jsonl
 
 # SBM web: public submissions and triage drafts (live on the server)
 web/submissions/
+
+# Cut-list generated output
+tools/cutlist/out/
