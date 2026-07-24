@@ -96,6 +96,22 @@ end
 
 RegisterCommand('clap', function() clap('manual') end, false)
 
+-- Fire the clap over HTTP, so a Stream Deck (or any one-button "go live" macro)
+-- can trigger the sync without anyone typing a command in-game. LAN-only in
+-- practice; a token keeps a stray browser request from setting it off.
+--   http://<server-ip>:30120/telemetry/clap?key=sbmclap
+local CLAP_KEY = 'sbmclap'
+SetHttpHandler(function(req, res)
+    if req.path:find('^/clap') and req.path:find('key=' .. CLAP_KEY, 1, true) then
+        clap('streamdeck')
+        res.writeHead(200, { ['Content-Type'] = 'text/plain' })
+        res.send('clap fired\n')
+    else
+        res.writeHead(403, { ['Content-Type'] = 'text/plain' })
+        res.send('nope\n')
+    end
+end)
+
 CreateThread(function()
     while true do
         Wait(3000)
