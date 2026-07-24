@@ -10,3 +10,10 @@ cache/
 *.bak
 *.bak-*
 *.bak[0-9]
+
+# Earshot: voice capture, transcripts and secrets
+tools/earshot/.env
+tools/earshot/node_modules/
+tools/earshot/.venv/
+tools/earshot/queue/
+transcripts/
