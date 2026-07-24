@@ -4,7 +4,7 @@ Custom co-op game modes for **GTA V / FiveM**, built for a load of mates and a
 weekly game night.
 
 The unusual part: **almost all of this was written live, mid-session, by
-[Claude Code](https://claude.com/claude-code)** — while the three of us were
+[Claude Code](https://claude.com/claude-code)** — while a room full of us were
 in-game playing it. Someone says "the zombies should drag us out of the car",
 and a few minutes later the zombies drag us out of the car. Occasionally they
 do something else entirely, which is most of the fun.

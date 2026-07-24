@@ -1,7 +1,7 @@
 # Agent brief
 
 Read this before implementing any issue. Each issue in this repo is either a
-request overheard from three mates playing the game, or one they filed by hand
+request overheard from the mates playing the game, or one they filed by hand
 during the week. Your job is to make the change they'd have wanted — not merely
 the change the words literally describe.
 
@@ -12,8 +12,8 @@ up `auto`; leave `needs-human` and `unclear` for a person.
 
 ## What this is
 
-Custom co-op game modes for GTA V / FiveM, played weekly by three friends. It is
-a comedy, not a serious server. The tone is **Shaun of the Dead**: a pub, an
+Custom co-op game modes for GTA V / FiveM, played weekly by a growing crew of
+mates. It is a comedy, not a serious server. The tone is **Shaun of the Dead**: a pub, an
 apocalypse, a getaway van that runs out of petrol at the worst moment. Jokes in
 the chat lines are correct and expected.
 
