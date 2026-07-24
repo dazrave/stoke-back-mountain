@@ -83,16 +83,44 @@ jerry can. He gets in the car with you — but if you drive off without him,
 
 ## Commands
 
+Type them in chat with a `/`, or in the F8 console without one.
+
+### Playing
+
 ```
-/pint start lastorders|departures|waterlanding    the campaign
-/horde start|stop|reset          sandbox horde     /wave [n]
-/chase start|stop                cops and robbers
-/score                           kill leaderboard
-/resetgame                       full reset, respawn everyone somewhere random
+/pint start [lastorders|departures|waterlanding]   the campaign (default: lastorders)
+/pint stop | skip | list                           abandon / skip a stage / list missions
+/horde start | stop | reset                        sandbox wave survival
+/wave [n]                                           force the next wave, or jump to wave n
+/chase start | stop                                 one fugitive, everyone else is police
+/score                                              horde kill leaderboard
+/resetgame                                          stop everything, respawn everyone somewhere random, together
 ```
 
-**Keys:** `F6` follow · `F7` aggressive · `F9` hold · `F10` respawn squadmate ·
-`F11` give him your weapon · `G` fetch a jerry can · `E` interact.
+### Keys
+
+| Key | Does |
+|---|---|
+| `F6` / `F7` / `F9` | Squadmate: follow / be aggressive / hold position |
+| `F10` | Squadmate: respawn him |
+| `F11` | Squadmate: copy the weapon you're holding |
+| `G` | Squadmate: fetch the nearest jerry can |
+| `E` | Interact — pick up / pour jerry cans, loot ammo, arrest (in chase) |
+
+### Extras
+
+```
+/moment [name]     trigger a random event on yourself (planecrash, crashcar, runner,
+                   helicopter, turning, ambulance, faller, stampede, tanker)
+/tmark <note>      flag a moment in the telemetry log ("that bridge chase was great")
+```
+
+### Dev tools
+
+Live in `infected_dev`, which is **stopped for game night** so nobody has god mode.
+When it's running: `/god`, `/noclip` (F2), `/perf` (F4), `/dbg` zombie labels (F3),
+`/guns`, `/here`, `/slow`, `/stress`, `/clipset`, `/tp`, plus `/zdbg` (zombie pursuit
+debug, lives in `infected`).
 
 ---
 
