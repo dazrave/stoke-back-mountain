@@ -194,6 +194,7 @@ end)
 RegisterNetEvent('chase:arrest', function()
     local source = source
     if state.phase ~= 'active' or source == state.fugitive then return end
+    TriggerEvent('core:stat', source, 'arrests', 1) -- season scoreboard
     endRound('arrested')
 end)
 

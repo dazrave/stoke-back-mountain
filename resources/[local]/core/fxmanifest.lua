@@ -6,4 +6,16 @@ description 'Stokeback core: the shared foundation every mode sits on. First job
 author 'Stokeback Mountain'
 version '0.1.0'
 
-client_script 'client/world.lua'
+client_scripts {
+    'client/world.lua',
+    'client/hud.lua',
+    'client/life.lua',
+    'client/modifiers.lua',
+    'client/spectator.lua',
+}
+
+server_scripts {
+    'server/stats.lua',
+    'server/rules.lua',
+    'server/director.lua',
+}

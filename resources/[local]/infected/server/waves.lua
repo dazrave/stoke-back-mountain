@@ -132,6 +132,7 @@ RegisterNetEvent('infected:reportDead', function(killed, culled, killers)
     for id, n in pairs(killers or {}) do
         local key = tonumber(id) or id
         scores[key] = (scores[key] or 0) + n
+        TriggerEvent('core:stat', key, 'kills', n) -- feed the season scoreboard
     end
 
     setState({

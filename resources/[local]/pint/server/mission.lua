@@ -50,6 +50,10 @@ local function finish()
     setState({ active = false, stageIndex = 0 })
     exports.infected:setRunning(false)
     exports.infected:setIntensity(1.0)
+    -- The living survivors get a win on the season scoreboard.
+    for _, src in ipairs(GetPlayers()) do
+        if not state.dead[tonumber(src)] then TriggerEvent('core:stat', tonumber(src), 'wins', 1) end
+    end
     TriggerClientEvent('pint:win', -1, mission and mission.winBoat or nil)
     tell('Survived. Type /score to see who carried.')
 
