@@ -30,6 +30,7 @@ local function endRound(result)
 
     setState({ phase = 'idle' })
     TriggerClientEvent('chase:end', -1, result, state.fugitiveName)
+    TriggerClientEvent('core:heatSuppress', -1, false) -- free roam gets its police back
 
     -- Hand the world back to the zombie stack.
     CreateThread(function()
@@ -57,6 +58,10 @@ local function start()
 
     local players = GetPlayers()
     if #players < 2 then return tell('Need at least 2 players: one rabbit, some hounds.') end
+
+    -- The only cops tonight are human, so mute core's scripted police heat -
+    -- otherwise NPC units would gatecrash the manhunt.
+    TriggerClientEvent('core:heatSuppress', -1, true)
 
     -- The zombie stack owns the world (empty streets, fog, one-hit-kill).
     -- This mode needs a LIVING city, so it turns all that off - with the

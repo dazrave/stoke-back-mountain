@@ -13,6 +13,7 @@ client_scripts {
     'client/modifiers.lua',
     'client/spectator.lua',
     'client/vote.lua',
+    'client/heat.lua',
 }
 
 server_scripts {
@@ -20,4 +21,5 @@ server_scripts {
     'server/rules.lua',
     'server/director.lua',
     'server/vote.lua',
+    'server/heat.lua',
 }
