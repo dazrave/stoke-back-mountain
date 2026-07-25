@@ -12,10 +12,12 @@ client_scripts {
     'client/life.lua',
     'client/modifiers.lua',
     'client/spectator.lua',
+    'client/vote.lua',
 }
 
 server_scripts {
     'server/stats.lua',
     'server/rules.lua',
     'server/director.lua',
+    'server/vote.lua',
 }
