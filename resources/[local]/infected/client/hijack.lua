@@ -23,6 +23,14 @@ local function isInfected(ped)
     return GetPedRelationshipGroupHash(ped) == infectedHash
 end
 
+-- The campaign's refuel stage requires you to sit still at a pump, and the
+-- hijack requires you to be moving to be safe. Left alone the two fight, and
+-- the pump always loses: you get flung out every couple of seconds and the
+-- tank never fills. Refuelling wins - the garrison that spawns at the pumps is
+-- already the intended punishment for lingering.
+local refuelling = false
+AddEventHandler('pint:refuelling', function(on) refuelling = on and true or false end)
+
 local function infectedOnTheDoors(vehicle)
     local at = GetEntityCoords(vehicle)
 
@@ -104,6 +112,7 @@ CreateThread(function()
             end
 
             if vehicle ~= 0 and not IsEntityDead(ped)
+                and not refuelling
                 and GetEntitySpeed(vehicle) < Config.hijack.maxSpeed
                 and infectedOnTheDoors(vehicle) then
                 grabbed  = true

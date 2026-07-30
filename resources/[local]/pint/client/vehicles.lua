@@ -510,6 +510,10 @@ CreateThread(function()
 
                     DecorSetFloat(vehicle, FUEL_DECOR, fuel)
 
+                    -- Tell the horde we're at the pumps, so it doesn't drag us
+                    -- out of a stage that requires standing still.
+                    TriggerEvent('pint:refuelling', refuelling)
+
                     -- Refuelling is loud and stationary. Linger at the pumps
                     -- and company keeps arriving out of the dark.
                     if refuelling then

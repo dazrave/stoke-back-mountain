@@ -85,9 +85,12 @@ Config = {
 
     hijack = {
         enabled  = true,
-        radius      = 6.0,  -- how close one has to get to the vehicle
+        radius      = 2.8,  -- ON the doors. 6.0 was the whole forecourt, so
+                            -- standing anywhere near the car counted as a grab
         maxSpeed    = 14.0, -- m/s - about 30mph; faster than this and they can't hold on
-        grabMs      = 900,  -- how long they cling before you come out
+        grabMs      = 2200, -- how long they cling before you come out. 900ms
+                            -- gave no time to react - you were out before the
+                            -- warning finished printing
         summonRange = 60.0,  -- dawdle with them this close and one WILL reach you
         stallMs     = 2500,  -- how long you have to be slow before that happens
         summonEvery = 12000, -- ...and no more often than this, so they don't pile up
