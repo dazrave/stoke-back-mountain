@@ -6,7 +6,10 @@ Archetypes.definitions = {
     shambler = {
         label      = 'Shambler',
         health     = 260,
-        moveRate   = 0.55,
+        -- Has to be plainly slower than a player on foot: a shambler wins by
+        -- never stopping, not by being quick. Was 0.55, which read in-game as
+        -- keeping pace with us and left nowhere to walk away to.
+        moveRate   = 0.40,
         clipset    = 'move_m@drunk@verydrunk', -- the classic shuffle
         -- no trigger: it walks the whole way
         sprintAt   = nil,
@@ -27,7 +30,11 @@ Archetypes.definitions = {
     stalker = {
         label      = 'Stalker',
         health     = 220,
-        moveRate   = 0.5,
+        -- Tracks the shambler rate deliberately. The whole trick is that you
+        -- cannot pick one out of the shuffling crowd, so if it walks in faster
+        -- than the shamblers around it that IS the tell and the sprint stops
+        -- being a surprise. Move this whenever the shambler moves.
+        moveRate   = 0.36,
         clipset    = 'move_m@drunk@verydrunk',
         sprintAt   = 25.0,
         sprintRate = 1.7,
