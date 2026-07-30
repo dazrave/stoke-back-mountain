@@ -125,7 +125,12 @@ Config = {
                   -- Completes when someone is actually behind a wheel, and
                   -- needs no securing: you cannot hold an area on foot while
                   -- the objective is to be sat in a car.
-                  requireVehicle = true, secureSeconds = 0 },
+                  requireVehicle = true, secureSeconds = 0,
+                  -- Company from the off. Without this the first infected you
+                  -- meet are the ones waiting at Harmony, so the opening leg
+                  -- is a quiet drive through an empty map - the apocalypse
+                  -- should be there before you have found a car.
+                  ambush = true },
                 { id = 'petrol', type = 'goto', target = vector3(1039.9, 2671.3, 39.5), radius = 28.0,
                   title = 'FILL UP AT HARMONY', flavour = 'Park at the pumps and wait for the tank. It takes a while.',
                   done = 'That glow over the city used to be streetlights. It\'s fires now.',
