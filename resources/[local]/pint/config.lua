@@ -39,6 +39,11 @@ Config = {
     -- Quick enough to race between objectives, scruffy enough to still be the
     -- apocalypse. Nobody waits for the van and nobody gets left behind.
     crewCars    = { 'futo', 'sultan', 'penumbra', 'blista', 'sentinel', 'buffalo' },
+    -- How far out the fan of motors is parked. 8m put them close enough to
+    -- land on whoever had just respawned at the same spot - a car dropping on
+    -- somebody and flattening them was, in fairness, very funny, but it also
+    -- cost them the round.
+    crewCarRadius = 16.0,
     crewCarFuel = 60.0,
     wreckModels   = { 'emperor2', 'tornado3', 'regina', 'burrito3' },
     claimDistance = 150.0,

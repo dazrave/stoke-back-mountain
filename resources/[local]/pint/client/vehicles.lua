@@ -226,13 +226,23 @@ AddEventHandler('pint:spawnMyCar', function(at, index)
     local hash  = loadModel(name)
     if not hash then return end
 
-    local angle = slot * 1.1
-    local px    = at.x + math.cos(angle) * 8.0
-    local py    = at.y + math.sin(angle) * 8.0
+    -- Spread wider than the huddle everyone respawns in, and drop each motor
+    -- onto the road rather than at the start line's height: spawning at at.z
+    -- above uneven ground is how a car ends up landing on a player.
+    local radius = Config.crewCarRadius or 16.0
+    local angle  = slot * 1.1
+    local px     = at.x + math.cos(angle) * radius
+    local py     = at.y + math.sin(angle) * radius
+    local pz     = at.z
 
-    clearSpot(vector3(px, py, at.z), 4.0)
+    local ok, node = GetClosestVehicleNodeWithHeading(px, py, at.z, 1, 3.0, 0)
+    if ok then
+        px, py, pz = node.x, node.y, node.z
+    end
 
-    local vehicle = CreateVehicle(hash, px, py, at.z, math.deg(angle) + 90.0, true, true)
+    clearSpot(vector3(px, py, pz), 4.0)
+
+    local vehicle = CreateVehicle(hash, px, py, pz, math.deg(angle) + 90.0, true, true)
     SetModelAsNoLongerNeeded(hash)
 
     if not DoesEntityExist(vehicle) then return end
