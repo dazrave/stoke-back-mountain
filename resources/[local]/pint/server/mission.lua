@@ -54,6 +54,7 @@ local function finish()
     for _, src in ipairs(GetPlayers()) do
         if not state.dead[tonumber(src)] then TriggerEvent('core:stat', tonumber(src), 'wins', 1) end
     end
+    exports.core:clearPopulation()
     TriggerClientEvent('pint:win', -1, mission and mission.winBoat or nil)
     tell('Survived. Type /score to see who carried.')
 
@@ -259,6 +260,12 @@ local function start(name)
     exports.infected:resetAll()
     exports.infected:setIntensity(mission.intensityFlat or 1.0)
 
+    -- Empty the streets for the whole campaign, not just while a wave is up.
+    -- core arbitrates this so two modes can't fight over the density natives;
+    -- the claim is released on win and on stop, and core drops it by itself if
+    -- this resource falls over.
+    exports.core:setPopulation('empty')
+
     -- Scatter missions hand each player their own spawn, round-robin; the
     -- gang index deals everyone a different member of the same crew.
     local players = GetPlayers()
@@ -286,6 +293,9 @@ local function stop()
     setState({ active = false, stageIndex = 0 })
     exports.infected:setRunning(false)
     exports.infected:setIntensity(1.0)
+    -- Hand the streets back. The campaign holds an empty city while it runs.
+    exports.core:clearPopulation()
+
     TriggerClientEvent('pint:ended', -1)
     tell('Mission abandoned. The pint remains theoretical.')
 end
