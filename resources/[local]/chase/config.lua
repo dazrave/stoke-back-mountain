@@ -37,6 +37,11 @@ Config = {
     -- Shoot the car, not the driver. The suspect cannot be killed, so gunfire
     -- had nothing to do; this gives the police a way to actually end a pursuit
     -- and gives the fugitive a reason to keep changing cars.
+    -- A police car is not a getaway car. Nicking one turned the chase into the
+    -- suspect driving a cruiser while the police chased their own fleet, and it
+    -- also handed them the fastest vehicles in the round.
+    lockPoliceVehicles = true,
+
     carHits = {
         enabled = true,
         hits    = 5,     -- bullet hits before the engine gives up

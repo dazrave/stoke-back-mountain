@@ -244,3 +244,39 @@ CreateThread(function()
         end
     end
 end)
+
+
+-- ===== police cars are not getaway cars =====
+-- Locked on the FUGITIVE's own client. Door locks set for a specific player
+-- are a local decision about what that player may open, so the one machine
+-- that needs to be told is theirs - and it holds for AI cruisers that spawn
+-- mid-round too, which a lock applied once at fleet spawn would miss.
+local POLICE_MODELS = {}
+for _, list in ipairs({ Config.cop.vehicles or {}, Config.ai.models or {} }) do
+    for _, model in ipairs(list) do
+        POLICE_MODELS[GetHashKey(model)] = true
+    end
+end
+
+CreateThread(function()
+    while true do
+        Wait(1000)
+
+        local role, status = ChaseState()
+
+        if Config.lockPoliceVehicles and role == 'fugitive' and status.phase ~= 'idle' then
+            local me = GetEntityCoords(PlayerPedId())
+
+            for _, vehicle in ipairs(GetGamePool('CVehicle')) do
+                if DoesEntityExist(vehicle)
+                    and POLICE_MODELS[GetEntityModel(vehicle)]
+                    and #(GetEntityCoords(vehicle) - me) < 60.0 then
+                    -- Only for US. SetVehicleDoorsLocked would lock the car
+                    -- for everyone and shut the police out of their own fleet,
+                    -- which is a far worse bug than the one being fixed.
+                    SetVehicleDoorsLockedForPlayer(vehicle, PlayerId(), true)
+                end
+            end
+        end
+    end
+end)
