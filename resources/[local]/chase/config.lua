@@ -78,6 +78,11 @@ Config = {
     -- round. They shoot at the suspect they're chasing and nobody else.
     ai = {
         enabled         = true,
+        -- Unarmed. They pursue, box you in and pile out after you, but the
+        -- shooting is left to the human police - it is their round to win.
+        -- NPC gunfire also can't disable a car, since only bullet hits count
+        -- towards that, so nothing is lost by taking their pistols away.
+        armed           = false,
         weapon          = 'WEAPON_PISTOL',
         accuracy        = 25,      -- shooting from a moving car, be fair
         max             = 3,       -- how many are on you at once

@@ -155,16 +155,20 @@ local function spawnUnit(me)
         SetPedCanRagdollFromPlayerImpact(driver, false)
     end
 
-    -- Armed, fearless, and a genuinely good driver.
+    -- Fearless, and a genuinely good driver. Armed only if configured.
     RemoveAllPedWeapons(driver, true)
-    GiveWeaponToPed(driver, GetHashKey(Config.ai.weapon), 250, false, true)
-    SetPedInfiniteAmmo(driver, true, GetHashKey(Config.ai.weapon))
-    SetPedAccuracy(driver, Config.ai.accuracy)
-    SetPedFiringPattern(driver, GetHashKey('FIRING_PATTERN_BURST_FIRE_DRIVEBY'))
+
+    if Config.ai.armed then
+        GiveWeaponToPed(driver, GetHashKey(Config.ai.weapon), 250, false, true)
+        SetPedInfiniteAmmo(driver, true, GetHashKey(Config.ai.weapon))
+        SetPedAccuracy(driver, Config.ai.accuracy)
+        SetPedFiringPattern(driver, GetHashKey('FIRING_PATTERN_BURST_FIRE_DRIVEBY'))
+    end
 
     SetPedFleeAttributes(driver, 0, false)
     SetPedCombatAttributes(driver, 46, true) -- always fight
-    SetPedCombatAttributes(driver, 2, true)  -- will lean out and shoot
+    -- 2 is "lean out and shoot", which an unarmed copper can only mime.
+    SetPedCombatAttributes(driver, 2, Config.ai.armed and true or false)
     SetPedCombatAttributes(driver, 3, true)  -- will get out and give chase on foot
 
     SetDriverAbility(driver, 1.0)
