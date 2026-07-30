@@ -100,6 +100,64 @@ local function endRound(result)
     tell(lines[result] or 'Round over.')
 end
 
+-- ===== whose turn it is =====
+-- Everyone gets a go, in order, and nobody does it twice on the bounce.
+--
+-- Two things were quietly wiping this memory, and both are routine (#51).
+--
+-- The first: this whole block used to sit INSIDE start(), so `lastFugitive`
+-- was a fresh local on every single round. It was nil every time the rota came
+-- to read it, which meant the "first suspect of the night is random" branch was
+-- the only branch that ever ran. The rota was a coin toss wearing a rota's
+-- clothes, and somebody could absolutely go twice on the bounce.
+--
+-- The second: PUSH LIVE restarts this resource several times an evening, which
+-- takes any in-memory answer with it. So it is written to disk. It is kept by
+-- NAME rather than by server id, because ids are handed out fresh on every
+-- reconnect and would not survive either.
+local ROTA_FILE = '.last-fugitive'
+
+local function rememberFugitive(name)
+    if not name or name == '' then return end
+    SaveResourceFile(GetCurrentResourceName(), ROTA_FILE, name, -1)
+end
+
+local function whoWentLast()
+    local stored = LoadResourceFile(GetCurrentResourceName(), ROTA_FILE)
+    if not stored or stored == '' then return nil end
+    return stored
+end
+
+local function nextFugitive(players)
+    local roster = {}
+    for _, src in ipairs(players) do
+        local id = tonumber(src)
+        if id then roster[#roster + 1] = { id = id, name = GetPlayerName(id) } end
+    end
+
+    if #roster == 0 then return nil end
+
+    -- Sorted so the order is the same every round rather than following
+    -- whatever order GetPlayers happened to return.
+    table.sort(roster, function(a, b) return a.id < b.id end)
+
+    local previous = whoWentLast()
+    local at = nil
+
+    for index, player in ipairs(roster) do
+        if player.name == previous then at = index break end
+    end
+
+    -- Nobody here went last: first round of the night, or they have since left.
+    -- Draw at random so the rota doesn't always open with whoever happens to
+    -- hold the lowest server id. Otherwise it is strictly the next one along,
+    -- which is what makes going twice in a row impossible rather than unlikely.
+    local pick = at and roster[(at % #roster) + 1] or roster[math.random(#roster)]
+
+    rememberFugitive(pick.name)
+    return pick.id
+end
+
 -- Assigns the local declared at the top of the file, so endRound can reach it.
 function start()
     if state.phase ~= 'idle' then return tell('Round already running. /chase stop first.') end
@@ -110,43 +168,6 @@ function start()
     -- The only cops tonight are human, so mute core's scripted police heat -
     -- otherwise NPC units would gatecrash the manhunt.
     TriggerClientEvent('core:heatSuppress', -1, true)
-
--- ===== whose turn it is =====
--- Everyone gets a go, in order, and nobody does it twice on the bounce. Rounds
--- now chain automatically after a death, so random picking meant somebody
--- could be the suspect three times running while a mate never got a turn.
---
--- Server ids are sorted so the order is stable between rounds rather than
--- following whatever order GetPlayers happens to return. Kept outside the
--- round state on purpose: it has to outlive the round that set it.
-local lastFugitive = nil
-
-local function nextFugitive(players)
-    local ids = {}
-    for _, src in ipairs(players) do ids[#ids + 1] = tonumber(src) end
-    table.sort(ids)
-
-    if #ids == 0 then return nil end
-
-    -- The first suspect of the night is drawn at random, so the rota doesn't
-    -- always open with whoever happens to hold the lowest server id. After
-    -- that it is strictly the next one along.
-    if lastFugitive == nil then
-        local pick = ids[math.random(#ids)]
-        lastFugitive = pick
-        return pick
-    end
-
-    -- Whoever comes after last time. If they have since left, start at the top.
-    local at = 0
-    for index, id in ipairs(ids) do
-        if id == lastFugitive then at = index break end
-    end
-
-    local pick = ids[(at % #ids) + 1]
-    lastFugitive = pick
-    return pick
-end
 
     -- The zombie stack owns the world (empty streets, fog, one-hit-kill).
     -- This mode needs a LIVING city, so it turns all that off - with the

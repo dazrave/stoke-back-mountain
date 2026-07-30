@@ -13,3 +13,6 @@ cache/
 
 # SBM web: public submissions and triage drafts (live on the server)
 web/submissions/
+
+# Written by chase/server/round.lua on the live server: whose turn it was.
+resources/[local]/chase/.last-fugitive
