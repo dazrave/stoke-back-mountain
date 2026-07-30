@@ -33,16 +33,19 @@ local lastCrimeAt = 0
 local lastTick    = 0
 local units       = {}
 local nextSpawn   = 0
-local apocalypse  = false
 local suppressed  = false
 local announced   = 0 -- highest whole-star level we've told the server about
 
-RegisterNetEvent('infected:engaged', function(on) apocalypse = on and true or false end)
 RegisterNetEvent('core:heatSuppress', function(on) suppressed = on and true or false end)
 
+-- Heat rides on the city being populated: NPC police only make sense on
+-- streets that have people in them, and an emptied city means a mode has taken
+-- the world over. Reading core's own population policy rather than listening
+-- for a game mode's flag means this stays right when core is hot-reloaded
+-- mid-round — a restart re-syncs the policy from the server.
 local function active()
     local ped = PlayerPedId()
-    return not apocalypse and not suppressed
+    return World.policy ~= 'empty' and not suppressed
         and not IsEntityDead(ped) and NetworkIsSessionStarted()
 end
 

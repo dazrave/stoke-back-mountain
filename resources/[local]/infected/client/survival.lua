@@ -60,30 +60,20 @@ function Survival.restoreWorld()
     ClearWeatherTypePersist()
 end
 
--- Clearing ambient population does double duty: it frees slots in GTA's
--- 256-ped pool for the horde, and an empty city is the whole point of the
--- mode. Density calls are per-frame, so simply not calling them brings the
--- city back on its own when disengaged.
+-- Emptying the streets is core's job now: the server claims the 'empty'
+-- population policy while we are engaged (see server/waves.lua) and core owns
+-- the density natives for every mode, so the city can only ever be pushed in
+-- one direction at a time. It also frees slots in GTA's 256-ped pool for the
+-- horde, which is why the horde wants it.
+--
+-- What is left here is the rule that is ours alone: no police response while
+-- the world has ended. Sticky native, so it only needs an occasional nudge.
 function Survival.suppressWorld()
-    if not Config.survival.suppressAmbient then return end
-
     CreateThread(function()
         while true do
+            Wait(500)
             if Survival.engaged then
                 SetMaxWantedLevel(Config.survival.maxWantedLevel)
-                SetPedDensityMultiplierThisFrame(0.0)
-                SetScenarioPedDensityMultiplierThisFrame(0.0, 0.0)
-                SetVehicleDensityMultiplierThisFrame(0.0)
-                SetRandomVehicleDensityMultiplierThisFrame(0.0)
-                SetParkedVehicleDensityMultiplierThisFrame(0.0)
-                SetCreateRandomCops(false)
-                SetGarbageTrucks(false)
-                SetRandomBoats(false)
-                DistantCopCarSirens(false)
-
-                Wait(0)
-            else
-                Wait(500)
             end
         end
     end)

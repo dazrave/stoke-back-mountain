@@ -101,15 +101,70 @@ RegisterCommand('clap', function() clap('manual') end, false)
 -- practice; a token keeps a stray browser request from setting it off.
 --   http://<server-ip>:30120/telemetry/clap?key=sbmclap
 local CLAP_KEY = 'sbmclap'
+
+-- ===== announcements from outside the game =====
+-- The workshop daemon calls this to narrate the build loop in chat: an idea
+-- was heard, a build is ready, a change just went live. Everyone playing sees
+-- it without alt-tabbing, and it lands on camera, which is the point.
+--   http://<server-ip>:30120/telemetry/say?key=sbmsay&text=hello&colour=yellow
+local SAY_KEY = 'sbmsay'
+
+local COLOURS = {
+    yellow = { 245, 200, 66 },
+    green  = { 120, 255, 120 },
+    red    = { 255, 120, 120 },
+    blue   = { 120, 190, 255 },
+    grey   = { 160, 160, 160 },
+}
+
+local function urldecode(text)
+    text = text:gsub('+', ' ')
+    return (text:gsub('%%(%x%x)', function(hex)
+        return string.char(tonumber(hex, 16))
+    end))
+end
+
+-- Pull one parameter out of a query string. Values arrive percent-encoded.
+local function query(path, name)
+    local raw = path:match('[?&]' .. name .. '=([^&]*)')
+    return raw and urldecode(raw) or nil
+end
+
 SetHttpHandler(function(req, res)
-    if req.path:find('^/clap') and req.path:find('key=' .. CLAP_KEY, 1, true) then
+    local path = req.path or ''
+
+    if path:find('^/clap') and path:find('key=' .. CLAP_KEY, 1, true) then
         clap('streamdeck')
         res.writeHead(200, { ['Content-Type'] = 'text/plain' })
         res.send('clap fired\n')
-    else
-        res.writeHead(403, { ['Content-Type'] = 'text/plain' })
-        res.send('nope\n')
+        return
     end
+
+    if path:find('^/say') and path:find('key=' .. SAY_KEY, 1, true) then
+        local text = query(path, 'text')
+
+        if not text or text == '' then
+            res.writeHead(400, { ['Content-Type'] = 'text/plain' })
+            res.send('no text\n')
+            return
+        end
+
+        -- Chat is a shout, not a log: keep it to one readable line.
+        text = text:sub(1, 240)
+
+        TriggerClientEvent('chat:addMessage', -1, {
+            color = COLOURS[query(path, 'colour') or 'yellow'] or COLOURS.yellow,
+            args  = { 'workshop', text },
+        })
+
+        print(('[telemetry] say: %s'):format(text))
+        res.writeHead(200, { ['Content-Type'] = 'text/plain' })
+        res.send('said\n')
+        return
+    end
+
+    res.writeHead(403, { ['Content-Type'] = 'text/plain' })
+    res.send('nope\n')
 end)
 
 CreateThread(function()

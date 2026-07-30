@@ -27,11 +27,36 @@ local function engagedNow()
     return state.running or state.engagedExt
 end
 
+-- The horde needs empty streets, so it ASKS core for them rather than reaching
+-- for the density natives itself. core owns the city and hands it straight back
+-- the moment we let go — including if this resource is stopped or falls over
+-- mid-round, which is why nothing here has to remember to clean up.
+local function claimStreets()
+    local ok, err = pcall(function()
+        if engagedNow() and Config.survival.suppressAmbient then
+            exports.core:setPopulation('empty')
+        else
+            exports.core:clearPopulation()
+        end
+    end)
+
+    if not ok then
+        print('[infected] could not reach core to set the population: ' .. tostring(err))
+    end
+end
+
 -- Tells every client whether the apocalypse is "on". Off = the city populates
 -- normally and free-roam is just GTA.
 local function broadcastEngaged()
     TriggerClientEvent('infected:engaged', -1, engagedNow())
+    claimStreets()
 end
+
+-- core coming back up starts with a clean slate of claims, so re-state ours or
+-- a hot-reload of core would repopulate the city in the middle of a horde.
+AddEventHandler('onResourceStart', function(resource)
+    if resource == 'core' then claimStreets() end
+end)
 
 local function readyPlayers()
     local players = {}

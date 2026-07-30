@@ -17,6 +17,7 @@ client_scripts {
 }
 
 server_scripts {
+    'server/world.lua',
     'server/stats.lua',
     'server/rules.lua',
     'server/director.lua',
