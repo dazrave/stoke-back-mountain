@@ -105,6 +105,35 @@ function start()
     -- otherwise NPC units would gatecrash the manhunt.
     TriggerClientEvent('core:heatSuppress', -1, true)
 
+-- ===== whose turn it is =====
+-- Everyone gets a go, in order, and nobody does it twice on the bounce. Rounds
+-- now chain automatically after a death, so random picking meant somebody
+-- could be the suspect three times running while a mate never got a turn.
+--
+-- Server ids are sorted so the order is stable between rounds rather than
+-- following whatever order GetPlayers happens to return. Kept outside the
+-- round state on purpose: it has to outlive the round that set it.
+local lastFugitive = nil
+
+local function nextFugitive(players)
+    local ids = {}
+    for _, src in ipairs(players) do ids[#ids + 1] = tonumber(src) end
+    table.sort(ids)
+
+    if #ids == 0 then return nil end
+
+    -- Whoever comes after last time. If they have since left, or this is the
+    -- first round, start at the top of the list.
+    local at = 0
+    for index, id in ipairs(ids) do
+        if id == lastFugitive then at = index break end
+    end
+
+    local pick = ids[(at % #ids) + 1]
+    lastFugitive = pick
+    return pick
+end
+
     -- The zombie stack owns the world (empty streets, fog, one-hit-kill).
     -- This mode needs a LIVING city, so it turns all that off - with the
     -- resource natives, because a script has no permission to run the console
@@ -114,7 +143,7 @@ function start()
     StopResource('infected')
     StopResource('squadmate')
 
-    local fugitive = tonumber(players[math.random(#players)])
+    local fugitive = nextFugitive(players)
     local now      = GetGameTimer()
 
     setState({
