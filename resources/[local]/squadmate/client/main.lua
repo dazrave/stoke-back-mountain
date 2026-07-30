@@ -28,9 +28,23 @@ local function giveOrder(orderName)
     UI.notify('~b~Squadmate: ~w~' .. Orders.definitions[orderName].label)
 end
 
+-- Pint missions run without AI allies. Uses the same pint:begin / pint:ended
+-- broadcasts that loot.lua and vehicles.lua already listen to, rather than
+-- inventing another channel.
+local missionActive = false
+
+local function missionsBlockSquad()
+    return Config.suppressDuringMissions and missionActive
+end
+
 local function respawnSquadmate()
     Squad.despawn(state.squad)
     setSquad(nil)
+
+    if missionsBlockSquad() then
+        UI.notify('~y~No squadmates on a mission - you have got each other.')
+        return
+    end
 
     local squad, err = Squad.spawn()
 
@@ -89,8 +103,24 @@ RegisterKeyMapping(
 )
 
 AddEventHandler('playerSpawned', function()
+    if missionsBlockSquad() then return end
     respawnSquadmate()
 end)
+
+RegisterNetEvent('pint:begin', function()
+    missionActive = true
+    if Config.suppressDuringMissions then
+        Squad.despawn(state.squad)
+        setSquad(nil)
+    end
+end)
+
+local function missionOver()
+    missionActive = false
+end
+
+RegisterNetEvent('pint:ended', missionOver)
+RegisterNetEvent('pint:win', missionOver)
 
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end
@@ -129,7 +159,9 @@ end)
 -- playerSpawned event coming, so deploy immediately if we are already in game.
 CreateThread(function()
     Wait(1000)
-    if not Squad.isAlive(state.squad) and NetworkIsPlayerActive(PlayerId()) then
+    if not missionsBlockSquad()
+       and not Squad.isAlive(state.squad)
+       and NetworkIsPlayerActive(PlayerId()) then
         respawnSquadmate()
     end
 end)

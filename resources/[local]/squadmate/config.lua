@@ -1,5 +1,12 @@
 -- All tunables live here. Nothing below this file should hardcode a number.
 Config = {
+    -- No AI allies during a pint mission. The campaign is written around a
+    -- crew of humans running out of petrol and shouting at each other; an
+    -- extra bot each turns a tense drive into a firing squad, and they were
+    -- deliberately made poor shots, so they mostly just added noise.
+    -- Set false to have them come along on missions again.
+    suppressDuringMissions = true,
+
     bot = {
         model         = 'a_m_m_bevhills_02',
         weapon        = 'WEAPON_PISTOL', -- fallback when you are unarmed at spawn
