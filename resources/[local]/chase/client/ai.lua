@@ -105,6 +105,27 @@ local function approachPoint(from)
     return nil
 end
 
+-- The suspect's ped, resolved from the server's id rather than assumed to be
+-- whoever is holding this keyboard. These units are only ever spawned on the
+-- fugitive's own client, so PlayerPedId() was right - but it was right by
+-- accident, and anything that ever runs this elsewhere would have had NPC
+-- police hunting a copper. Naming the target explicitly makes that impossible
+-- rather than merely unlikely.
+local function fugitivePed()
+    local _, status = ChaseState()
+    local id = status and status.fugitiveId
+
+    if id then
+        local player = GetPlayerFromServerId(id)
+        if player ~= -1 then
+            local ped = GetPlayerPed(player)
+            if ped and ped ~= 0 and DoesEntityExist(ped) then return ped end
+        end
+    end
+
+    return nil
+end
+
 local function spawnUnit(me)
     -- Out of a nick where there is one in range; otherwise the old behaviour,
     -- so a chase in the hills still gets police at all.
@@ -175,7 +196,7 @@ local function spawnUnit(me)
     SetDriverAggressiveness(driver, 1.0)
     SetPedKeepTask(driver, true)
 
-    TaskVehicleChase(driver, PlayerPedId())
+    TaskVehicleChase(driver, fugitivePed() or PlayerPedId())
 
     units[#units + 1] = { vehicle = vehicle, ped = driver, at = GetGameTimer() }
 end
@@ -190,6 +211,14 @@ CreateThread(function()
         local hunting = Config.ai.enabled
             and role == 'fugitive'
             and status.phase == 'active'
+
+        -- Not the suspect? Then this client has no business running police.
+        -- Any unit left over from a previous role goes now, rather than
+        -- circling whoever happens to be standing here.
+        if not hunting and #units > 0 then
+            for _, unit in ipairs(units) do despawn(unit) end
+            units = {}
+        end
 
         if hunting then
             local me  = GetEntityCoords(PlayerPedId())
@@ -213,7 +242,7 @@ CreateThread(function()
             for _, unit in ipairs(units) do
                 if (now - unit.at) > 8000 then
                     unit.at = now
-                    TaskVehicleChase(unit.ped, PlayerPedId())
+                    TaskVehicleChase(unit.ped, fugitivePed() or PlayerPedId())
                     SetVehicleSiren(unit.vehicle, true)
                 end
             end
