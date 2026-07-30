@@ -1,5 +1,6 @@
 -- Fugitive brain: no weapons, position heartbeat, and the breadcrumbs they
 -- leave while hidden - stolen-car reports and collision witnesses.
+local nextKnockdown = 0
 local memo = { lastVehicle = 0, firstVehicle = 0, bodyHealth = nil, nextWitness = 0, diedReported = false, hits = 0 }
 
 local function whereAmI()
@@ -228,6 +229,18 @@ CreateThread(function()
                     wasHit = true
                     ChaseHUD.notify('~r~You\'re hit.~w~ Still standing. Keep going.')
                     ShakeGameplayCam('SMALL_EXPLOSION_SHAKE', 0.4)
+                end
+
+                -- On foot and shot: knocked down, not killed. That few seconds
+                -- on the floor is the arrest window. Rate-limited so a second
+                -- copper can't keep them there indefinitely.
+                local knock = Config.nonLethal.knockdown
+                if knock and knock.enabled
+                    and not IsPedInAnyVehicle(ped, false)
+                    and GetGameTimer() >= nextKnockdown then
+                    nextKnockdown = GetGameTimer() + knock.everyMs
+                    SetPedToRagdoll(ped, knock.downMs, knock.downMs, 0, true, true, false)
+                    ChaseHUD.notify('~r~DOWN.~w~ Get up before they reach you.')
                 end
             elseif health > Config.nonLethal.limpBelow then
                 wasHit = false

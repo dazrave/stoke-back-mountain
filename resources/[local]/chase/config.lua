@@ -44,7 +44,7 @@ Config = {
 
     carHits = {
         enabled = true,
-        hits    = 5,     -- bullet hits before the engine gives up
+        hits    = 4,     -- bullet hits before the engine gives up
     },
 
     nonLethal = {
@@ -52,6 +52,16 @@ Config = {
         enabled     = false,
         floorHealth = 110, -- 100 is death, so this leaves them on their last legs
         limpBelow   = 140,
+
+        -- Shot on foot, they go down rather than die: a few seconds on the
+        -- floor is the window to actually cuff them. Without this the police
+        -- could empty a magazine into someone who simply kept jogging, since
+        -- the health floor means gunfire can never finish the job.
+        knockdown = {
+            enabled  = true,
+            everyMs  = 6000, -- can't be chain-stunned into a permanent nap
+            downMs   = 4500, -- how long they're on the floor
+        },
     },
 
     -- AI units. Armed, but harmless in the only way that counts: the
