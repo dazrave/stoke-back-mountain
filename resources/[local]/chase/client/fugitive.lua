@@ -63,36 +63,63 @@ CreateThread(function()
                     -- A fresh car is a fresh set of chances.
                     memo.hits        = 0
                     ClearEntityLastWeaponDamage(vehicle)
+                    ClearEntityLastDamageEntity(vehicle)
                 end
 
-                -- Take enough rounds and the engine gives up. Counted as
-                -- BULLET damage specifically (type 2), so kerbs and lampposts
-                -- don't quietly use up the allowance - being shot at is the
-                -- thing the police are meant to be rewarded for.
-                if Config.carHits.enabled
-                    and HasEntityBeenDamagedByWeapon(vehicle, 0, 2) then
+                local body = GetVehicleBodyHealth(vehicle)
+                local drop = memo.bodyHealth and (memo.bodyHealth - body) or 0.0
+
+                -- Take enough punishment and the engine gives up.
+                if Config.carHits.enabled then
+                    local hit = false
+
+                    -- Shot at. BULLET damage specifically (type 2), so kerbs
+                    -- and lampposts can't use up the allowance this way.
+                    if Config.carHits.bullets
+                        and HasEntityBeenDamagedByWeapon(vehicle, 0, 2) then
+                        hit = true
+                    end
+
+                    -- Rammed. HasEntityBeenDamagedByAnyVehicle is what keeps
+                    -- scenery out of it: walls, kerbs and railings are map
+                    -- collision rather than entities, and a lamppost or a bin
+                    -- is an object, so none of them can ever set the
+                    -- damaged-by-a-VEHICLE bit - only another motor can. The
+                    -- damage threshold then throws away the traffic scrapes,
+                    -- leaving the deliberate shunts the police want rewarding.
+                    if Config.carHits.rams
+                        and HasEntityBeenDamagedByAnyVehicle(vehicle)
+                        and drop >= Config.carHits.minRamDamage then
+                        hit = true
+                    end
+
+                    -- Cleared every pass, hit or not: these flags latch until
+                    -- they're reset, and a stale one would let the next kerb
+                    -- you clip land inside the same second as an old ram.
                     ClearEntityLastWeaponDamage(vehicle)
-                    memo.hits = memo.hits + 1
+                    ClearEntityLastDamageEntity(vehicle)
 
-                    local left = Config.carHits.hits - memo.hits
+                    if hit then
+                        memo.hits = memo.hits + 1
 
-                    if left <= 0 then
-                        SetVehicleEngineHealth(vehicle, 0.0)
-                        SetVehicleUndriveable(vehicle, true)
-                        BeginTextCommandThefeedPost('STRING')
-                        AddTextComponentSubstringPlayerName('~r~ENGINE\'S GONE.~w~ Find another motor.')
-                        EndTextCommandThefeedPostTicker(false, true)
-                    elseif left <= 2 then
-                        BeginTextCommandThefeedPost('STRING')
-                        AddTextComponentSubstringPlayerName(('~y~She won\'t take much more. ~w~%d left.'):format(left))
-                        EndTextCommandThefeedPostTicker(false, true)
+                        local left = Config.carHits.hits - memo.hits
+
+                        if left <= 0 then
+                            SetVehicleEngineHealth(vehicle, 0.0)
+                            SetVehicleUndriveable(vehicle, true)
+                            BeginTextCommandThefeedPost('STRING')
+                            AddTextComponentSubstringPlayerName('~r~ENGINE\'S GONE.~w~ Find another motor.')
+                            EndTextCommandThefeedPostTicker(false, true)
+                        elseif left <= 2 then
+                            BeginTextCommandThefeedPost('STRING')
+                            AddTextComponentSubstringPlayerName(('~y~She won\'t take much more. ~w~%d left.'):format(left))
+                            EndTextCommandThefeedPostTicker(false, true)
+                        end
                     end
                 end
 
                 -- Bumps and scrapes while hidden get phoned in by witnesses.
-                local body = GetVehicleBodyHealth(vehicle)
-
-                if memo.bodyHealth and (memo.bodyHealth - body) > 3.0
+                if memo.bodyHealth and drop > 3.0
                     and not status.tracking
                     and GetGameTimer() > memo.nextWitness then
                     memo.nextWitness = GetGameTimer() + Config.reports.witnessGapMs

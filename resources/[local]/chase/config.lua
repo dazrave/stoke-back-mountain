@@ -51,9 +51,22 @@ Config = {
     -- also handed them the fastest vehicles in the round.
     lockPoliceVehicles = true,
 
+    -- What actually stops the getaway car. Ramming it is (#39): "it needs to be
+    -- hit with another vehicle four times to disable it, not shot. When it's
+    -- shot it can carry on, shooting only affects the wheels" - and GTA pops
+    -- the tyres on its own, so gunfire still has a job.
     carHits = {
         enabled = true,
-        hits    = 4,     -- bullet hits before the engine gives up
+        hits    = 4,     -- impacts before the engine gives up
+
+        rams    = true,  -- rammed by another vehicle counts
+        bullets = false, -- being shot at does not: flip to true to bring it back
+
+        -- A shunt, not a scrape. Body health runs to 1000, so brushing past
+        -- traffic costs a couple of points while a proper hit costs tens.
+        -- Without this the allowance would evaporate at the first busy
+        -- junction, and kerbs would never have been the only worry.
+        minRamDamage = 15.0,
     },
 
     nonLethal = {
