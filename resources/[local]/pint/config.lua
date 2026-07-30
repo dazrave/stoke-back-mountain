@@ -73,6 +73,11 @@ Config = {
     beaterFuelDefault  = { 15, 45 },
     beaterEngineHealth = { 350, 750 },
 
+    -- Flash each new objective across the middle of the screen, not just into
+    -- the corner. The corner line is easy to miss while something is chewing
+    -- your leg, which is exactly when a new objective tends to arrive.
+    stageShard = true,
+
     hud = {
         objX  = 0.015, objY  = 0.885,
         fuelX = 0.845, fuelY = 0.885,

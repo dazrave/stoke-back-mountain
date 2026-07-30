@@ -372,6 +372,13 @@ RegisterNetEvent('pint:stage', function(missionName, index)
     PintHUD.set({ objective = data.title, holdout = '__clear', gather = '__clear', regroup = '__clear' })
     PintHUD.notify('~y~' .. data.title .. '~w~ - ' .. data.flavour)
 
+    -- Big banner for every new objective. Skipped on the first stage, where
+    -- the mission's own shard has just played and two would stack on top of
+    -- each other.
+    if Config.stageShard and index > 1 then
+        PintHUD.shard(data.title, data.flavour)
+    end
+
     -- The single-player checkpoint chime on every stage transition.
     PlaySoundFrontend(-1, 'CHECKPOINT_PERFECT', 'HUD_MINI_GAME_SOUNDSET', true)
 end)
