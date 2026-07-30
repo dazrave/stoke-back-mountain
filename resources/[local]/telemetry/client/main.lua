@@ -107,9 +107,15 @@ RegisterNetEvent('infected:engaged', function(on) engaged = on and true or false
 RegisterNetEvent('chase:role', function() inChase = true end)
 RegisterNetEvent('chase:end', function() inChase = false end)
 
+-- How often your position leaves this machine. The map is only ever as fresh
+-- as the slowest link in send -> relay -> redraw, and at 4s each that was up
+-- to ten seconds of lag: a mate's dot sat a street behind where they actually
+-- were, which is useless for finding each other.
+local PING_MS = 1000
+
 CreateThread(function()
     while true do
-        Wait(4000)
+        Wait(PING_MS)
 
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
@@ -181,9 +187,12 @@ RegisterNetEvent('telemetry:mates', function(list)
     mates = list or {}
 end)
 
+-- Blip redraw. Faster than the relay would just redraw the same numbers.
+local BLIP_MS = 1000
+
 CreateThread(function()
     while true do
-        Wait(2000)
+        Wait(BLIP_MS)
 
         local me   = GetPlayerServerId(PlayerId())
         local show = not engaged and not inChase

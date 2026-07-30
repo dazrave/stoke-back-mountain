@@ -378,9 +378,15 @@ AddEventHandler('playerDropped', function()
     positions[source] = nil
 end)
 
+-- Matches the clients' ping rate: relaying slower than they report just adds
+-- staleness on top of theirs. The list is a handful of numbers per player, so
+-- at a dozen players this is nothing next to the position stream FiveM is
+-- already sending.
+local MATES_MS = 1000
+
 CreateThread(function()
     while true do
-        Wait(4000)
+        Wait(MATES_MS)
 
         local list = {}
         for _, p in pairs(positions) do
