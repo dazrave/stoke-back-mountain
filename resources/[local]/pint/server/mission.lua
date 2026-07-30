@@ -45,10 +45,19 @@ local function claimStreets()
         else
             exports.core:clearPopulation()
         end
+
+        -- Tell the horde the apocalypse is on for the whole campaign, not just
+        -- while a wave is up. infected has always exported setEngaged for
+        -- exactly this and nothing ever called it, so during travel - which is
+        -- most of a mission - engagedNow() was false and the wanted level was
+        -- left unclamped at 5. Shoot anything and GTA dispatched its own
+        -- police, which is why emptying the streets did not stop them turning
+        -- up: different mechanism entirely.
+        exports.infected:setEngaged(state.active)
     end)
 
     if not ok then
-        print('[pint] could not reach core to set the population: ' .. tostring(err))
+        print('[pint] could not reach core/infected to set the world state: ' .. tostring(err))
     end
 end
 
