@@ -211,6 +211,55 @@ CreateThread(function()
     end
 end)
 
+-- Nothing stands between a copper and their own fleet.
+--
+-- A door lock lives on the VEHICLE and rides along with it, so anything that
+-- ever locked a cruiser - a previous round, another mode, or a client that
+-- meant to lock it only against itself - can leave the law stood outside their
+-- own car while the suspect drives off. Same for an engine that never started
+-- or a motor flagged undriveable. Assert the opposite every second, because
+-- being unable to set off is the one failure that ends the round on its own.
+local POLICE_MODELS = {}
+for _, list in ipairs({ Config.cop.vehicles or {}, Config.ai.models or {} }) do
+    for _, model in ipairs(list) do
+        POLICE_MODELS[GetHashKey(model)] = true
+    end
+end
+
+CreateThread(function()
+    while true do
+        Wait(1000)
+
+        local role, status = ChaseState()
+
+        if role == 'cop' and status.phase and status.phase ~= 'idle' then
+            local ped = PlayerPedId()
+            local me  = GetEntityCoords(ped)
+
+            for _, vehicle in ipairs(GetGamePool('CVehicle')) do
+                if DoesEntityExist(vehicle)
+                    and POLICE_MODELS[GetEntityModel(vehicle)]
+                    and #(GetEntityCoords(vehicle) - me) < 40.0 then
+                    SetVehicleDoorsLocked(vehicle, 1) -- 1 = unlocked
+                    SetVehicleDoorsLockedForAllPlayers(vehicle, false)
+                    SetVehicleDoorsLockedForPlayer(vehicle, PlayerId(), false)
+                end
+            end
+
+            -- And whatever we are sat behind the wheel of actually drives.
+            local mine = GetVehiclePedIsIn(ped, false)
+
+            if mine ~= 0 and GetPedInVehicleSeat(mine, -1) == ped then
+                SetVehicleUndriveable(mine, false)
+
+                if not GetIsVehicleEngineRunning(mine) then
+                    SetVehicleEngineOn(mine, true, true, false)
+                end
+            end
+        end
+    end
+end)
+
 RegisterNetEvent('chase:end', clearBlips)
 
 AddEventHandler('onResourceStop', function(resourceName)

@@ -247,10 +247,19 @@ end)
 
 
 -- ===== police cars are not getaway cars =====
--- Locked on the FUGITIVE's own client. Door locks set for a specific player
--- are a local decision about what that player may open, so the one machine
--- that needs to be told is theirs - and it holds for AI cruisers that spawn
--- mid-round too, which a lock applied once at fleet spawn would miss.
+-- Enforced on the FUGITIVE'S OWN PED, which is the one entity their machine
+-- genuinely owns.
+--
+-- The first go at this (#30) stamped SetVehicleDoorsLockedForPlayer onto every
+-- police car within 60m. That reads as a local decision but isn't one: the
+-- lock is stored ON THE VEHICLE, so it travels with the vehicle's synced game
+-- state, and the player it names is a local index that is a different person
+-- on a different machine. During the head start the fugitive stands 8m from
+-- the whole fleet, so it branded every car the police were about to get into -
+-- which is #32, the law stood outside their own cruisers at the off.
+--
+-- Refusing the door on our own ped cannot touch anybody else's car, and it
+-- still covers the AI cruisers that turn up mid-round.
 local POLICE_MODELS = {}
 for _, list in ipairs({ Config.cop.vehicles or {}, Config.ai.models or {} }) do
     for _, model in ipairs(list) do
@@ -259,23 +268,30 @@ for _, list in ipairs({ Config.cop.vehicles or {}, Config.ai.models or {} }) do
 end
 
 CreateThread(function()
+    local nextMoan = 0
+
+    local function moan()
+        if GetGameTimer() < nextMoan then return end
+        nextMoan = GetGameTimer() + 4000
+        ChaseHUD.notify('~r~Not that one.~w~ You are not nicking a police car.')
+    end
+
     while true do
-        Wait(1000)
+        Wait(200)
 
         local role, status = ChaseState()
 
         if Config.lockPoliceVehicles and role == 'fugitive' and status.phase ~= 'idle' then
-            local me = GetEntityCoords(PlayerPedId())
+            local ped       = PlayerPedId()
+            local inVehicle = GetVehiclePedIsIn(ped, false)
+            local wanted    = GetVehiclePedIsTryingToEnter(ped)
 
-            for _, vehicle in ipairs(GetGamePool('CVehicle')) do
-                if DoesEntityExist(vehicle)
-                    and POLICE_MODELS[GetEntityModel(vehicle)]
-                    and #(GetEntityCoords(vehicle) - me) < 60.0 then
-                    -- Only for US. SetVehicleDoorsLocked would lock the car
-                    -- for everyone and shut the police out of their own fleet,
-                    -- which is a far worse bug than the one being fixed.
-                    SetVehicleDoorsLockedForPlayer(vehicle, PlayerId(), true)
-                end
+            if inVehicle ~= 0 and POLICE_MODELS[GetEntityModel(inVehicle)] then
+                TaskLeaveVehicle(ped, inVehicle, 4160)
+                moan()
+            elseif wanted ~= 0 and POLICE_MODELS[GetEntityModel(wanted)] then
+                ClearPedTasks(ped)
+                moan()
             end
         end
     end
