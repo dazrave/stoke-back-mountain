@@ -278,9 +278,15 @@ RegisterNetEvent('chase:role', function(role)
             end
         end
 
-        -- Held at the station until release.
-        FreezeEntityPosition(PlayerPedId(), true)
-        setState({ frozen = true })
+        -- Held at the station until release - but only if there is still a
+        -- hold left to serve. Spawning takes up to 2.5s (settleToGround waits
+        -- for collision), and the server starts its head start clock 1.5s
+        -- before it even sends this event, so a short hold can be over before
+        -- we get here. Freezing then would be a freeze nobody ever lifts.
+        if state.status.phase == nil or state.status.phase == 'headstart' then
+            FreezeEntityPosition(PlayerPedId(), true)
+            setState({ frozen = true })
+        end
     end
 
     -- Golden-hour city, and no NPC police gatecrashing the chase.
@@ -346,6 +352,15 @@ end)
 
 RegisterNetEvent('chase:status', function(status)
     setState({ status = status })
+
+    -- The safety net for the same race the other way round: if the release
+    -- event fired while we were still spawning, we never heard it. Status
+    -- ticks every second and is the truth, so anything other than a head
+    -- start means we should be moving.
+    if state.frozen and status.phase and status.phase ~= 'headstart' then
+        FreezeEntityPosition(PlayerPedId(), false)
+        setState({ frozen = false })
+    end
 end)
 
 RegisterNetEvent('chase:end', function(result, fugitiveName)
