@@ -99,6 +99,18 @@ local function spawnUnit(me)
         return
     end
 
+    if Config.ai.invincible then
+        SetEntityInvincible(driver, true)
+        -- Invincibility alone does not stop a fall: fall damage arrives as
+        -- COLLISION damage, which is the fourth proof here and the reason a
+        -- cop could still be killed by a drop off the hills.
+        -- (bullet, fire, explosion, collision, melee, steam, p7, drown)
+        SetEntityProofs(driver, true, true, true, true, true, true, true, true)
+        SetPedSuffersCriticalHits(driver, false)
+        SetPedDiesInWater(driver, false)
+        SetPedCanRagdollFromPlayerImpact(driver, false)
+    end
+
     -- Armed, fearless, and a genuinely good driver.
     RemoveAllPedWeapons(driver, true)
     GiveWeaponToPed(driver, GetHashKey(Config.ai.weapon), 250, false, true)

@@ -51,6 +51,11 @@ Config = {
         despawnDistance = 340.0,
         models          = { 'police', 'police2', 'police3' },
         driver          = 's_m_y_cop_01',
+        -- The officer, not the car. A round should end because somebody got
+        -- away or got nicked, not because a cruiser clipped a kerb on the
+        -- Vinewood hills and the pursuit quietly evaporated. The car stays
+        -- destructible on purpose - bursting tyres is half the chase.
+        invincible      = true,
     },
 
     arrest = {
