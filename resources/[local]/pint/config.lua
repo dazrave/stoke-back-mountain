@@ -127,15 +127,17 @@ Config = {
                 { id = 'van', type = 'goto', target = vector3(1975.5, 3043.5, 46.8), radius = 60.0,
                   title = 'GET IN YOUR MOTOR', flavour = 'One each. First to Harmony picks the music.',
                   done = 'Engines running. Try to arrive in the same decade.',
-                  -- Completes when someone is actually behind a wheel, and
-                  -- needs no securing: you cannot hold an area on foot while
-                  -- the objective is to be sat in a car.
-                  requireVehicle = true, secureSeconds = 0,
-                  -- Fight the opening ambush off before you're allowed to
-                  -- drive away from it. Without this you could sit in the van
-                  -- the moment it arrived and leave the wave standing there,
-                  -- which made the ambush decorative.
-                  requireClear = 45.0,
+                  -- Completes when someone is actually behind a wheel, then
+                  -- fight the opening ambush off before you drive away from
+                  -- it, done as a HOLD rather than a clear-the-area check.
+                  --
+                  -- requireClear cannot work here: the objective is to sit in
+                  -- a car, and the horde comes to you, so there are always
+                  -- infected within any radius you pick and the stage never
+                  -- completes. Holding from the driver's seat gives the same
+                  -- "earn it" beat and can actually be finished.
+                  requireVehicle = true,
+                  holdInVehicle = true, secureSeconds = 15,
                   -- Company from the off. Without this the first infected you
                   -- meet are the ones waiting at Harmony, so the opening leg
                   -- is a quiet drive through an empty map - the apocalypse
