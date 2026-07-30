@@ -12,6 +12,11 @@ local state = {
     fugitivePos    = nil,    -- heartbeat, used only for the final alert
 }
 
+-- Air support announces itself once a round, when the helicopter is actually
+-- up. Kept out of `state` on purpose: it is a fact about the chat log, not
+-- about the round, and the fugitive's client is what decides when it's true.
+local airborneAnnounced = false
+
 local function setState(next)
     local merged = {}
     for key, value in pairs(state) do merged[key] = value end
@@ -154,6 +159,8 @@ end
     local fugitive = nextFugitive(players)
     local now      = GetGameTimer()
 
+    airborneAnnounced = false
+
     setState({
         phase           = 'headstart',
         fugitive        = fugitive,
@@ -276,11 +283,10 @@ CreateThread(function()
     end
 end)
 
--- A cop laid eyes on the fugitive.
-RegisterNetEvent('chase:see', function(coords)
-    local source = source
-    if state.phase ~= 'active' or source == state.fugitive then return end
-
+-- Somebody has eyes on the suspect. Shared by the coppers on the ground and by
+-- the helicopter, because a sighting is a sighting: it refreshes the lock and
+-- it sets the direction of travel.
+local function recordSighting(coords)
     -- Which way they were travelling between the last two sightings. Once the
     -- trail goes cold this is all the police get, and it is the difference
     -- between searching a circle and searching the right half of one.
@@ -294,6 +300,41 @@ RegisterNetEvent('chase:see', function(coords)
     end
 
     setState({ lastSeen = coords, lastSeenAt = GetGameTimer(), lastHeading = heading })
+end
+
+-- A cop laid eyes on the fugitive.
+RegisterNetEvent('chase:see', function(coords)
+    local source = source
+    if state.phase ~= 'active' or source == state.fugitive then return end
+
+    recordSighting(coords)
+end)
+
+-- The helicopter has them. This is the exact opposite check to `chase:see`:
+-- air support is an NPC flown by the suspect's own client (see client/heli.lua
+-- for why), so the ONLY machine allowed to report it is the one `chase:see`
+-- refuses to listen to.
+--
+-- Trusting the fugitive's client with this costs nothing. It gains them
+-- nothing to lie in either direction, and the client already reports its own
+-- position every second through `chase:heartbeat` regardless.
+RegisterNetEvent('chase:airEyes', function(coords)
+    local source = source
+    if state.phase ~= 'active' or source ~= state.fugitive then return end
+
+    recordSighting(coords)
+end)
+
+-- Air support is up. Said once, and only when the helicopter genuinely exists,
+-- so the line is never a promise the round doesn't keep.
+RegisterNetEvent('chase:airborne', function()
+    local source = source
+    if state.phase ~= 'active' or source ~= state.fugitive then return end
+    if airborneAnnounced then return end
+
+    airborneAnnounced = true
+    tell('Air support is up. That helicopter is why the suspect keeps showing on your map.')
+    tell('Get under something and the lock goes cold - bridges, tunnels, the multi-storeys.')
 end)
 
 -- Fugitive position heartbeat; only ever shown during the final alert.

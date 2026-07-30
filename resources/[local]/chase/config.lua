@@ -138,6 +138,31 @@ Config = {
         -- fall back to appearing near the suspect. Without it, a chase out at
         -- Paleto would simply stop producing police.
         stationRange    = 1200.0,
+
+        -- Air support (#49): "an AI helicopter, so that it kind of gives you a
+        -- reason why we can see them on the map a lot." It cannot arrest and
+        -- it isn't armed - it is the visible, audible cause of the live GPS
+        -- lock, and losing it under a bridge is what makes the lock stale.
+        heli = {
+            enabled        = true,
+            model          = 'polmav',
+            pilot          = 's_m_y_cop_01',
+
+            -- The opening stretch stays a ground pursuit. Air support takes a
+            -- moment to get up, and having it overhead from the whistle would
+            -- rob the one part of the round where losing them outright is
+            -- genuinely on.
+            arriveAfter    = 30,    -- seconds into the pursuit before it's up
+            arriveDistance = 220.0, -- comes in from off to one side, not overhead
+            arriveHeight   = 55.0,
+
+            -- Behind and above: close enough for the searchlight to land on
+            -- them, high enough to be over the multi-storeys rather than in
+            -- one. It sees as far as Config.sight.airRange, same as a copper
+            -- who took the helicopter themselves.
+            offset         = { x = 0.0, y = -18.0, z = 42.0 },
+            reportEvery    = 1200,  -- how often it calls a position in
+        },
     },
 
     arrest = {

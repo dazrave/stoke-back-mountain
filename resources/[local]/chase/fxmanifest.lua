@@ -13,6 +13,7 @@ client_scripts {
     'client/cop.lua',
     'client/fugitive.lua',
     'client/ai.lua',
+    'client/heli.lua',
 }
 
 server_script 'server/round.lua'
