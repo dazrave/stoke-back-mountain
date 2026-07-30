@@ -116,7 +116,11 @@ end
 -- A single probe right after a teleport asks about terrain that hasn't loaded
 -- yet, fails, and leaves you standing in the sky - which is exactly what was
 -- happening at the police station.
-local function settleToGround()
+-- `expectedZ` is the height of the road we meant to land on. The probe starts
+-- 40m up and takes the FIRST surface going down, which next to a building is
+-- its roof - so without a sanity check people spawn on top of the nick and
+-- spend the head start looking for the stairs.
+local function settleToGround(expectedZ)
     local ped = PlayerPedId()
 
     FreezeEntityPosition(ped, true)
@@ -129,6 +133,12 @@ local function settleToGround()
 
         if HasCollisionLoadedAroundEntity(ped) then
             local found, groundZ = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 40.0, false)
+
+            -- More than a storey above the road we aimed at is a roof, not the
+            -- ground. Take the road height instead and let physics settle it.
+            if found and expectedZ and groundZ > (expectedZ + 6.0) then
+                found, groundZ = true, expectedZ
+            end
 
             if found then
                 SetEntityCoords(ped, pos.x, pos.y, groundZ + 1.0, false, false, false, false)
@@ -227,7 +237,7 @@ RegisterNetEvent('chase:role', function(role)
 
         SetEntityCoords(ped, sx, sy, base.z, false, false, false, false)
         SetEntityHeading(ped, heading)
-        settleToGround()
+        settleToGround(base.z)
 
         local hash = loadModel(Config.fugitive.cars[math.random(#Config.fugitive.cars)])
         if hash then
@@ -243,7 +253,7 @@ RegisterNetEvent('chase:role', function(role)
             base.y - ry * 3.0 + math.random(-2, 2),
             base.z, false, false, false, false)
         SetEntityHeading(ped, heading)
-        settleToGround()
+        settleToGround(base.z)
 
         -- Exactly one cop (the server's pick) spawns the shared fleet, laid
         -- out along the nearest road so nothing ends up inside a wall.
@@ -288,7 +298,40 @@ RegisterNetEvent('chase:role', function(role)
     end
 end)
 
+-- Big centre-screen countdown. The corner clock already had the number, but
+-- nobody looks at the corner in the three seconds before a chase starts.
+local goFlashUntil = 0
+
+local function bigText(text, r, g, b, scale)
+    SetTextFont(1)
+    SetTextScale(scale, scale)
+    SetTextColour(r, g, b, 255)
+    SetTextOutline()
+    SetTextCentre(true)
+    SetTextEntry('STRING')
+    AddTextComponentSubstringPlayerName(text)
+    DrawText(0.5, 0.38)
+end
+
+CreateThread(function()
+    while true do
+        local status = state.status
+        local left   = status and status.headstart or 0
+
+        if state.role and status and status.phase == 'headstart' and left > 0 then
+            Wait(0)
+            bigText(tostring(left), 245, 200, 66, 3.0)
+        elseif GetGameTimer() < goFlashUntil then
+            Wait(0)
+            bigText('GO!', 120, 255, 120, 3.0)
+        else
+            Wait(200)
+        end
+    end
+end)
+
 RegisterNetEvent('chase:release', function()
+    goFlashUntil = GetGameTimer() + 1500
     if state.frozen then
         FreezeEntityPosition(PlayerPedId(), false)
         setState({ frozen = false })
