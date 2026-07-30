@@ -37,7 +37,9 @@ local function endRound(result)
         Wait(8000)
         if state.phase == 'idle' then
             StartResource('infected')
-            StartResource('squadmate')
+            -- Squadmates are off (#18); see server.cfg. Restoring the mode
+            -- stack after a chase must not quietly bring them back.
+            -- StartResource('squadmate')
             Wait(1000)
             StartResource('pint')
         end

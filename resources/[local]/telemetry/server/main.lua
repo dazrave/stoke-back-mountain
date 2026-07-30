@@ -318,11 +318,14 @@ RegisterCommand('resetgame', function()
 
         -- Restarting infected also takes its dependents down, hence the order.
         StopResource('infected')
-        StopResource('squadmate')
+        StopResource('squadmate')   -- harmless if it isn't running
         Wait(800)
 
         StartResource('infected')
-        StartResource('squadmate')
+        -- Squadmates are off (#18). Starting it here would resurrect them a
+        -- few seconds after every reset, which looks like the toggle failing.
+        -- Re-enable in server.cfg AND uncomment this line together.
+        -- StartResource('squadmate')
         Wait(1200)
 
         -- Bin orphaned vehicles before the modes come back, so nothing spawns
