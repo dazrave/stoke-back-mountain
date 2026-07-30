@@ -281,11 +281,17 @@ local function setAutoSpawn(enabled)
     pcall(function() exports.spawnmanager:setAutoSpawn(enabled) end)
 end
 
--- Not restored on chase:end on purpose - `pint` restarts a few seconds later
--- and re-enables auto-spawn with its own callback, which is the only thing
--- that knows where a survivor should reappear.
 RegisterNetEvent('chase:role', function()
     setAutoSpawn(false)
+end)
+
+-- Put it back ourselves. This used to rely on `pint` restarting seconds later
+-- and re-enabling it, which is true when a round ends normally and false when
+-- the round is torn down some other way - /resetgame stops chase outright, and
+-- then nothing re-enabled it and dying in free roam left you on the floor.
+-- Turning back on what we turned off is the resource's own job.
+RegisterNetEvent('chase:end', function()
+    setAutoSpawn(true)
 end)
 
 CreateThread(function()

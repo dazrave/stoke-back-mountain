@@ -338,3 +338,40 @@ RegisterNetEvent('telemetry:spawnNear', function(at)
     AddTextComponentSubstringPlayerName(('~g~Dropped in near ~w~%s'):format(at.name or 'the crew'))
     EndTextCommandThefeedPostTicker(false, true)
 end)
+
+
+-- ===== nobody stays dead in free roam =====
+-- Auto-spawn is a single global switch that any mode can turn off, and every
+-- mode that does has to remember to turn it back on down every exit path -
+-- including the ones where it is stopped outright rather than ending cleanly.
+-- That has failed at least once, and the symptom is the worst kind: you lie on
+-- the floor watching everyone else play, with nothing on screen to explain it.
+--
+-- So this is a backstop, not the mechanism. It only acts in free roam, and only
+-- after long enough that a mode's own revive or respawn has clearly not come.
+local DEAD_FOR_TOO_LONG_MS = 12000
+
+CreateThread(function()
+    local deadSince = 0
+
+    while true do
+        Wait(1000)
+
+        local ped = PlayerPedId()
+
+        if not IsEntityDead(ped) then
+            deadSince = 0
+        elseif engaged or inChase then
+            -- A mode owns the body: pint revives, chase respawns its own cops.
+            deadSince = 0
+        else
+            if deadSince == 0 then
+                deadSince = GetGameTimer()
+            elseif GetGameTimer() - deadSince > DEAD_FOR_TOO_LONG_MS then
+                deadSince = 0
+                exports.spawnmanager:setAutoSpawn(true)
+                exports.spawnmanager:forceRespawn()
+            end
+        end
+    end
+end)
