@@ -57,7 +57,7 @@ for help and then gets back up wrong.
 
 ### 🚓 `chase` — "Scrap Run"
 
-One fugitive on a dirt bike, everyone else is police. Ten minute rounds.
+One fugitive in a car, everyone else is police. Ten minute rounds.
 
 - **Line-of-sight tracking** — a copper with eyes on you gives the whole force a
   live GPS lock for ten seconds. Break the sightline and it decays to a
