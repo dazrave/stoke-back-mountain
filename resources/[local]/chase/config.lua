@@ -139,7 +139,10 @@ Config = {
         -- time. Hand-typed coordinates kept parking the cars inside the
         -- station, which is a very authentic police experience but unhelpful.
         vehicles     = { 'police', 'police2', 'police3', 'fbi2', 'policeb', 'policeb', 'polmav' },
-        fleetSpacing = 6.5,
+        -- Nose to tail down the kerb. 6.5m is barely a car length, so any
+        -- bend in the road had them overlapping and shoving each other about
+        -- on spawn.
+        fleetSpacing = 9.5,
 
         -- A copper is never out of the round. A death here is almost always
         -- the scenery at 90mph, and lying in the road until somebody gets

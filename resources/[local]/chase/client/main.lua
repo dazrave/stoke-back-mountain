@@ -243,7 +243,12 @@ RegisterNetEvent('chase:role', function(role)
         if hash then
             local car = placeVehicle(hash, vector4(sx + rx * 2.5, sy + ry * 2.5, base.z, heading))
             SetModelAsNoLongerNeeded(hash)
-            if car then trackEntity(car) end
+            if car then
+                trackEntity(car)
+                -- Behind the wheel already: the head start is three seconds,
+                -- and most of that was being spent walking round the bonnet.
+                TaskWarpPedIntoVehicle(ped, car, -1)
+            end
         end
     else
         -- On the road with everybody else, not stood in the station car park.
@@ -277,6 +282,41 @@ RegisterNetEvent('chase:role', function(role)
                 end
             end
         end
+
+        -- Into a cruiser. The fleet may have been spawned by a different
+        -- client, so wait for it to replicate here before looking - and
+        -- stagger the search by server id so two coppers don't both lunge for
+        -- the same driver's seat on the same frame.
+        CreateThread(function()
+            Wait(600 + (GetPlayerServerId(PlayerId()) % 5) * 250)
+
+            local mine = PlayerPedId()
+
+            for _ = 1, 12 do
+                if IsPedInAnyVehicle(mine, false) then break end
+
+                local best, bestDist = nil, nil
+                local me = GetEntityCoords(mine)
+
+                for _, vehicle in ipairs(GetGamePool('CVehicle')) do
+                    if DoesEntityExist(vehicle)
+                        and IsVehicleSeatFree(vehicle, -1)
+                        and not IsThisModelAHeli(GetEntityModel(vehicle)) then
+                        local gap = #(GetEntityCoords(vehicle) - me)
+                        if gap < 60.0 and (not bestDist or gap < bestDist) then
+                            best, bestDist = vehicle, gap
+                        end
+                    end
+                end
+
+                if best then
+                    TaskWarpPedIntoVehicle(mine, best, -1)
+                    break
+                end
+
+                Wait(400)
+            end
+        end)
 
         -- Held at the station until release - but only if there is still a
         -- hold left to serve. Spawning takes up to 2.5s (settleToGround waits
