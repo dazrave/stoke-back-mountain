@@ -32,6 +32,36 @@ local function M()
     return state.mission and Config.missions[state.mission] or nil
 end
 
+-- Empty streets for the whole campaign, not just while a wave is up. core
+-- arbitrates so two modes can't fight over the density natives, and it drops
+-- the claim by itself if this resource falls over.
+--
+-- pcall'd because core may not be up yet, and a campaign that refuses to start
+-- because the city is slightly too busy would be a worse bug than the litter.
+local function claimStreets()
+    local ok, err = pcall(function()
+        if state.active then
+            exports.core:setPopulation('empty')
+        else
+            exports.core:clearPopulation()
+        end
+    end)
+
+    if not ok then
+        print('[pint] could not reach core to set the population: ' .. tostring(err))
+    end
+end
+
+-- A claim is only made when a mission STARTS, so anything that restarts core
+-- or this resource mid-campaign silently repopulated the city - traffic,
+-- pedestrians and the police heat system all came back while the mission
+-- carried on. Re-state it whenever either side comes up.
+AddEventHandler('onResourceStart', function(resource)
+    if resource == 'core' or resource == GetCurrentResourceName() then
+        claimStreets()
+    end
+end)
+
 local function tell(message)
     TriggerClientEvent('chat:addMessage', -1, {
         color = { 245, 200, 66 },
@@ -54,7 +84,7 @@ local function finish()
     for _, src in ipairs(GetPlayers()) do
         if not state.dead[tonumber(src)] then TriggerEvent('core:stat', tonumber(src), 'wins', 1) end
     end
-    exports.core:clearPopulation()
+    claimStreets()
     TriggerClientEvent('pint:win', -1, mission and mission.winBoat or nil)
     tell('Survived. Type /score to see who carried.')
 
@@ -260,11 +290,7 @@ local function start(name)
     exports.infected:resetAll()
     exports.infected:setIntensity(mission.intensityFlat or 1.0)
 
-    -- Empty the streets for the whole campaign, not just while a wave is up.
-    -- core arbitrates this so two modes can't fight over the density natives;
-    -- the claim is released on win and on stop, and core drops it by itself if
-    -- this resource falls over.
-    exports.core:setPopulation('empty')
+    claimStreets()
 
     -- Scatter missions hand each player their own spawn, round-robin; the
     -- gang index deals everyone a different member of the same crew.
@@ -294,7 +320,7 @@ local function stop()
     exports.infected:setRunning(false)
     exports.infected:setIntensity(1.0)
     -- Hand the streets back. The campaign holds an empty city while it runs.
-    exports.core:clearPopulation()
+    claimStreets()
 
     TriggerClientEvent('pint:ended', -1)
     tell('Mission abandoned. The pint remains theoretical.')
