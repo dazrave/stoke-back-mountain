@@ -155,6 +155,12 @@ local function spawnUnit(me)
     SetEntityProofs(vehicle, false, false, false, false, false, false, false, false)
     SetVehicleEngineOn(vehicle, true, true, false)
 
+    -- Same cap as the players, or the cruisers either cannot keep up or walk
+    -- away from everyone.
+    if Config.matchedSpeed.enabled then
+        SetVehicleMaxSpeed(vehicle, Config.matchedSpeed.mps)
+    end
+
     local driver = CreatePedInsideVehicle(vehicle, 26, copHash, -1, true, true)
     SetModelAsNoLongerNeeded(copHash)
 

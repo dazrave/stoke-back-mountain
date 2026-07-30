@@ -16,6 +16,18 @@ Config = {
         holdMs      = 10000, -- a sighting keeps the GPS lock for this long
     },
 
+    -- Every car in the round is pegged to the same top speed, so the round is
+    -- decided by driving and by the map rather than by who happened to get the
+    -- quickest motor.
+    --
+    -- Has to sit BELOW the slowest car's own top speed or the slow ones simply
+    -- never reach the cap and the whole point is lost. 34 m/s is about 76 mph,
+    -- which every model in crewCars, cop.vehicles and fugitive.cars can hold.
+    matchedSpeed = {
+        enabled = true,
+        mps     = 34.0,
+    },
+
     -- How often the live ping actually moves, by how far away they are. Close
     -- up it is a live feed; at distance it is the occasional radio update, so
     -- a long lock stops handing the police a perfect real-time trace across

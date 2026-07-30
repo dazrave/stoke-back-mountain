@@ -530,3 +530,31 @@ CreateThread(function()
         end
     end
 end)
+
+
+-- ===== everyone's motor tops out the same =====
+-- Applied to whatever the player is sat in, not just what they started in:
+-- half the round is spent nicking something else, and a cap that only covered
+-- the issued cars would make hotwiring a fast one the winning move.
+CreateThread(function()
+    local capped = 0
+
+    while true do
+        Wait(500)
+
+        local ped     = PlayerPedId()
+        local vehicle = GetVehiclePedIsIn(ped, false)
+
+        if state.role and Config.matchedSpeed.enabled and vehicle ~= 0 then
+            if vehicle ~= capped then
+                capped = vehicle
+                SetVehicleMaxSpeed(vehicle, Config.matchedSpeed.mps)
+            end
+        elseif capped ~= 0 then
+            -- Hand the car back its own engine when the round is over, or the
+            -- cap would follow it into free roam.
+            if DoesEntityExist(capped) then SetVehicleMaxSpeed(capped, 0.0) end
+            capped = 0
+        end
+    end
+end)
