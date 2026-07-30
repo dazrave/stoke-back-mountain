@@ -39,9 +39,21 @@ CreateThread(function()
                 local range = IsPedInAnyVehicle(me, false) and IsPedInFlyingVehicle(me)
                     and Config.sight.airRange or Config.sight.groundRange
 
+                -- Trace car to car, not ped to ped. The line-of-sight test
+                -- ignores the two entities you name and nothing else, so with
+                -- both people sat in vehicles the ray leaves through your own
+                -- bodywork and arrives at theirs: BOTH cars block it. Sitting
+                -- right on the suspect's bumper at 70mph therefore never
+                -- counted as a sighting, which is why the map stayed blank for
+                -- entire pursuits. Name the vehicles and the ray is clear.
+                local myVehicle    = GetVehiclePedIsIn(me, false)
+                local theirVehicle = GetVehiclePedIsIn(ped, false)
+                local from = myVehicle ~= 0 and myVehicle or me
+                local to   = theirVehicle ~= 0 and theirVehicle or ped
+
                 if dist < range
-                    and IsEntityOnScreen(ped)
-                    and HasEntityClearLosToEntity(me, ped, 17) then
+                    and IsEntityOnScreen(to)
+                    and HasEntityClearLosToEntity(from, to, 17) then
                     TriggerServerEvent('chase:see', GetEntityCoords(ped))
                 end
             end
@@ -142,13 +154,17 @@ RegisterNetEvent('chase:ping', function(kind, coords, label)
 end)
 
 -- Loadout on release, and the arrest.
+local function issueKit()
+    local ped = PlayerPedId()
+    RemoveAllPedWeapons(ped, true)
+    GiveWeaponToPed(ped, GetHashKey(Config.cop.weapon), Config.cop.ammo, false, true)
+end
+
 RegisterNetEvent('chase:release', function()
     local role = ChaseState()
     if role ~= 'cop' then return end
 
-    local ped = PlayerPedId()
-    RemoveAllPedWeapons(ped, true)
-    GiveWeaponToPed(ped, GetHashKey(Config.cop.weapon), Config.cop.ammo, false, true)
+    issueKit()
 end)
 
 CreateThread(function()
@@ -200,6 +216,72 @@ RegisterNetEvent('chase:end', clearBlips)
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end
     clearBlips()
+end)
+
+-- ===== a copper is never out of the round =====
+-- Nothing was putting dead police back on their feet. spawnmanager is what
+-- normally does that, but chase stops `pint` for the duration and pint owns
+-- the auto-spawn settings: it switches auto-spawn OFF while a mission runs
+-- (mission deaths are final), and its spawn callback belongs to a resource
+-- that is no longer running. So a cop who wrapped a cruiser round a lamppost
+-- either lay there for the rest of the round or got dropped at a default
+-- spawn point on the far side of the map. Take the decision off spawnmanager
+-- and put people back ourselves, where they fell.
+-- Guarded: a missing spawnmanager must never take this whole file down.
+local function setAutoSpawn(enabled)
+    pcall(function() exports.spawnmanager:setAutoSpawn(enabled) end)
+end
+
+-- Not restored on chase:end on purpose - `pint` restarts a few seconds later
+-- and re-enables auto-spawn with its own callback, which is the only thing
+-- that knows where a survivor should reappear.
+RegisterNetEvent('chase:role', function()
+    setAutoSpawn(false)
+end)
+
+CreateThread(function()
+    while true do
+        Wait(500)
+
+        local role, status = ChaseState()
+
+        if role == 'cop' and Config.cop.respawn.enabled
+            and status.phase and status.phase ~= 'idle' then
+            local ped = PlayerPedId()
+
+            if IsEntityDead(ped) or IsPedFatallyInjured(ped) then
+                ChaseHUD.notify('~r~You\'re down.~w~ Back on shift shortly.')
+                Wait(Config.cop.respawn.delaySeconds * 1000)
+
+                -- Check again: a death on the whistle must not haul somebody
+                -- upright after the end-of-round shard has already played.
+                role, status = ChaseState()
+
+                if role == 'cop' and status.phase and status.phase ~= 'idle' then
+                    local at = GetEntityCoords(PlayerPedId())
+
+                    DoScreenFadeOut(400)
+                    Wait(500)
+
+                    -- Up where you fell rather than back at the nick: a chase
+                    -- out at Paleto would otherwise end your round anyway, just
+                    -- with a very long drive attached.
+                    NetworkResurrectLocalPlayer(at.x, at.y, at.z + 1.0,
+                        GetEntityHeading(PlayerPedId()), true, false)
+
+                    local up = PlayerPedId()
+                    ClearPedTasksImmediately(up)
+                    SetEntityHealth(up, GetEntityMaxHealth(up))
+                    ClearPedBloodDamage(up)
+                    SetPlayerInvincible(PlayerId(), false)
+                    issueKit()
+
+                    DoScreenFadeIn(600)
+                    ChaseHUD.notify('~b~Back on shift.~w~ Get after them.')
+                end
+            end
+        end
+    end
 end)
 
 -- Unlimited ammunition for the law. Running dry mid-pursuit just stalls the

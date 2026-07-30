@@ -117,6 +117,15 @@ Config = {
         vehicles     = { 'police', 'police2', 'police3', 'fbi2', 'policeb', 'policeb', 'polmav' },
         fleetSpacing = 6.5,
 
+        -- A copper is never out of the round. A death here is almost always
+        -- the scenery at 90mph, and lying in the road until somebody gets
+        -- nicked takes a player out of the whole evening with no way back.
+        -- They get up where they fell, kit re-issued, and rejoin the pursuit.
+        respawn = {
+            enabled      = true,
+            delaySeconds = 5, -- a beat on the floor to appreciate what you did
+        },
+
         -- Coppers can haul the suspect out of a slow-moving car.
         dragOut = {
             radius   = 4.5,
