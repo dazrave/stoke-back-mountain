@@ -16,6 +16,15 @@ Config = {
         holdMs      = 10000, -- a sighting keeps the GPS lock for this long
     },
 
+    -- How often the live ping actually moves, by how far away they are. Close
+    -- up it is a live feed; at distance it is the occasional radio update, so
+    -- a long lock stops handing the police a perfect real-time trace across
+    -- the map and starts feeling like someone phoning it in.
+    pingRate = {
+        nearMetres = 150.0,  fastMs = 1000,
+        farMetres  = 900.0,  slowMs = 8000,
+    },
+
     -- The search circle around the last-known position grows while hidden.
     search = {
         baseRadius   = 40.0,

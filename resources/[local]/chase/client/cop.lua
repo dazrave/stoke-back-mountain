@@ -72,6 +72,7 @@ CreateThread(function()
         if role == 'cop' and status.phase and status.phase ~= 'idle' then
             if status.tracking and status.trackPos then
                 if not blips.live or not DoesBlipExist(blips.live) then
+                    blips.nextPing = 0
                     blips.live = AddBlipForCoord(status.trackPos.x, status.trackPos.y, status.trackPos.z)
                     SetBlipSprite(blips.live, 161) -- crosshair-style target
                     SetBlipColour(blips.live, 1)
@@ -81,7 +82,23 @@ CreateThread(function()
                     EndTextCommandSetBlipName(blips.live)
                 end
 
-                SetBlipCoords(blips.live, status.trackPos.x, status.trackPos.y, status.trackPos.z)
+                -- The further off they are, the staler the ping. Distance is
+                -- measured to where we last plotted them, not to the truth,
+                -- so a suspect who is genuinely miles away cannot be tracked
+                -- any better by standing still and waiting for a fresh fix.
+                local rate = Config.pingRate
+                local me   = GetEntityCoords(PlayerPedId())
+                local gap  = #(vector3(status.trackPos.x, status.trackPos.y, status.trackPos.z) - me)
+
+                local span     = math.max(1.0, rate.farMetres - rate.nearMetres)
+                local howFar   = math.min(1.0, math.max(0.0, (gap - rate.nearMetres) / span))
+                local interval = rate.fastMs + (rate.slowMs - rate.fastMs) * howFar
+
+                if GetGameTimer() >= (blips.nextPing or 0) then
+                    blips.nextPing = GetGameTimer() + interval
+                    SetBlipCoords(blips.live, status.trackPos.x, status.trackPos.y, status.trackPos.z)
+                end
+
                 SetBlipFlashes(blips.live, true)
                 SetBlipRoute(blips.live, true) -- the GPS line
                 SetBlipRouteColour(blips.live, 1)
@@ -90,7 +107,10 @@ CreateThread(function()
                 -- A ring around them while we actually have eyes on, so the
                 -- live lock reads differently from a cold last-known dot.
                 if blips.ring and DoesBlipExist(blips.ring) then
-                    SetBlipCoords(blips.ring, status.trackPos.x, status.trackPos.y, status.trackPos.z)
+                    -- Follows the plotted ping, not the live position, or the
+                    -- ring would quietly give away the lag.
+                    local at = GetBlipCoords(blips.live)
+                    SetBlipCoords(blips.ring, at.x, at.y, at.z)
                 else
                     blips.ring = AddBlipForRadius(
                         status.trackPos.x, status.trackPos.y, status.trackPos.z, 45.0)
