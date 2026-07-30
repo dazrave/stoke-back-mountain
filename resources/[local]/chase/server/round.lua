@@ -197,9 +197,16 @@ CreateThread(function()
                 headstart    = math.max(0, math.ceil((state.headstartEndsAt - now) / 1000)),
                 fugitiveId   = state.fugitive,
                 fugitiveName = state.fugitiveName,
+                -- The suspect is always on the map now. Losing line of sight
+                -- no longer freezes the dot at a last-known position; it just
+                -- means the ping the police get is a stale one, and how stale
+                -- is decided client-side by how far away they are.
+                --
+                -- `tracking` still means "eyes on" - the client uses it for
+                -- the ring and the flashing - so the difference between a live
+                -- lock and a cold trace is still visible at a glance.
                 tracking     = tracking or finalAlert or headstart,
-                trackPos     = (finalAlert or headstart) and state.fugitivePos
-                    or (tracking and state.lastSeen or nil),
+                trackPos     = state.fugitivePos or state.lastSeen,
                 lastKnown    = state.lastSeen,
                 lastHeading  = state.lastHeading,
                 unseenFor    = state.lastSeen and math.floor((now - state.lastSeenAt) / 1000) or nil,

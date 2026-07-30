@@ -70,7 +70,7 @@ CreateThread(function()
         local role, status = ChaseState()
 
         if role == 'cop' and status.phase and status.phase ~= 'idle' then
-            if status.tracking and status.trackPos then
+            if status.trackPos then
                 if not blips.live or not DoesBlipExist(blips.live) then
                     blips.nextPing = 0
                     blips.live = AddBlipForCoord(status.trackPos.x, status.trackPos.y, status.trackPos.z)
@@ -99,14 +99,27 @@ CreateThread(function()
                     SetBlipCoords(blips.live, status.trackPos.x, status.trackPos.y, status.trackPos.z)
                 end
 
-                SetBlipFlashes(blips.live, true)
+                SetBlipFlashes(blips.live, status.tracking and true or false)
                 SetBlipRoute(blips.live, true) -- the GPS line
                 SetBlipRouteColour(blips.live, 1)
-                ShowHeadingIndicatorOnBlip(blips.live, false)
+
+                -- Heading arrow only when the trace has gone cold: with eyes
+                -- on, the dot itself is the answer.
+                if status.tracking then
+                    ShowHeadingIndicatorOnBlip(blips.live, false)
+                elseif status.lastHeading then
+                    SetBlipRotation(blips.live, math.floor(status.lastHeading))
+                    ShowHeadingIndicatorOnBlip(blips.live, true)
+                end
 
                 -- A ring around them while we actually have eyes on, so the
                 -- live lock reads differently from a cold last-known dot.
-                if blips.ring and DoesBlipExist(blips.ring) then
+                if not status.tracking then
+                    if blips.ring and DoesBlipExist(blips.ring) then
+                        RemoveBlip(blips.ring)
+                        blips.ring = nil
+                    end
+                elseif blips.ring and DoesBlipExist(blips.ring) then
                     -- Follows the plotted ping, not the live position, or the
                     -- ring would quietly give away the lag.
                     local at = GetBlipCoords(blips.live)
