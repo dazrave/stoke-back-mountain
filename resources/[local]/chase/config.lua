@@ -13,6 +13,19 @@ Config = {
     headstartSeconds = 3,   -- >0 holds the cops while the fugitive runs
     finalAlertSeconds = 60, -- citywide alert: fugitive permanently revealed
 
+    -- Shake them off (#50): "if you've not been seen for exactly 60 seconds on
+    -- chase mode, so there's no eyes on, no lock on, no GPS update for 60
+    -- seconds, then you've won. When you've been spotted."
+    --
+    -- Ten minutes of nobody finding you was a war of attrition; this makes
+    -- losing a tail a win in its own right, and gives the police a clock they
+    -- can watch running out. You have to have been SPOTTED first - otherwise
+    -- the way to win would be to park in a tunnel at the whistle and wait.
+    shakeOff = {
+        enabled = true,
+        seconds = 60,
+    },
+
     -- Sight rules. A cop "sees" the fugitive when they are within range, on
     -- screen, with clear line of sight. Any sighting keeps the live GPS lock
     -- fed for everyone.

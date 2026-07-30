@@ -506,6 +506,10 @@ CreateThread(function()
                     line = '~r~CITYWIDE ALERT - THEY\'RE ON YOUR MAP'
                 elseif status.tracking then
                     line = '~r~EYES ON - GPS LOCKED'
+                elseif status.shakeIn then
+                    -- The clock they are losing on. Far more use than how long
+                    -- ago it was: it says how long they have to find them.
+                    line = ('~y~SEARCHING - %ds until they are gone'):format(status.shakeIn)
                 elseif status.unseenFor then
                     line = ('~y~SEARCHING - last seen %ds ago'):format(status.unseenFor)
                 else
@@ -518,6 +522,8 @@ CreateThread(function()
                     line = '~r~CITYWIDE ALERT - NOWHERE TO HIDE'
                 elseif status.tracking then
                     line = '~r~SPOTTED'
+                elseif status.shakeIn then
+                    line = ('~g~SHAKING THEM - %ds to a clean getaway'):format(status.shakeIn)
                 elseif status.unseenFor then
                     line = ('~g~HIDDEN - %ds'):format(status.unseenFor)
                 else

@@ -91,6 +91,7 @@ local function endRound(result)
 
     local lines = {
         escaped  = ('%s got clean away. Drinks on the police budget.'):format(state.fugitiveName or '?'),
+        shaken   = ('%s shook the tail. A full minute, no eyes, no lock, no ping. Textbook.'):format(state.fugitiveName or '?'),
         arrested = ('%s got nicked. By the book.'):format(state.fugitiveName or '?'),
         shot     = 'You SHOT them. The chief is furious. Tyres, people. TYRES.',
         crashed  = 'The suspect and their bike parted company permanently. Case closes itself.',
@@ -230,6 +231,11 @@ end
         tell(('%s is the fugitive - stood right there. GO.'):format(state.fugitiveName))
     end
     tell('You CANNOT shoot them dead - shoot the tyres, corner them, drag them out, nick them.')
+
+    if Config.shakeOff.enabled then
+        tell(('Once they have been spotted, %d seconds with nobody laying eyes on them and they have won.'):format(
+            Config.shakeOff.seconds))
+    end
 end
 
 -- The tick: release the hounds, broadcast status, call time.
@@ -254,6 +260,18 @@ CreateThread(function()
             -- watches which way they went, then the leash comes off.
             local headstart = state.phase == 'headstart'
 
+            -- The shake-off clock. Runs only once they have actually been
+            -- spotted, and stops dead during the citywide alert - the whole
+            -- city has a live trace by then, so "nobody has seen me" would be
+            -- a lie the scoreboard shouldn't reward.
+            local shakeIn = nil
+
+            if Config.shakeOff.enabled and state.phase == 'active'
+                and state.lastSeen and not finalAlert then
+                shakeIn = math.max(0, math.ceil(
+                    (Config.shakeOff.seconds * 1000 - (now - state.lastSeenAt)) / 1000))
+            end
+
             TriggerClientEvent('chase:status', -1, {
                 phase        = state.phase,
                 remaining    = remaining,
@@ -274,9 +292,13 @@ CreateThread(function()
                 lastHeading  = state.lastHeading,
                 unseenFor    = state.lastSeen and math.floor((now - state.lastSeenAt) / 1000) or nil,
                 finalAlert   = finalAlert,
+                shakeIn      = shakeIn,
             })
 
-            if remaining <= 0 then
+            -- Losing them outright ends it before the clock does.
+            if shakeIn == 0 then
+                endRound('shaken')
+            elseif remaining <= 0 then
                 endRound('escaped')
             end
         end
