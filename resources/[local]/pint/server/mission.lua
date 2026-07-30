@@ -337,6 +337,11 @@ local function wipe()
     TriggerClientEvent('pint:wipe', -1)
     tell('Everyone died. Obviously.')
 
+    -- Back to square one, not just back to stage one: the restart already
+    -- sweeps the campaign's own leftovers, but the crew were still lying
+    -- wherever they fell, scattered across the map.
+    pcall(function() exports.telemetry:resetWorld() end)
+
     CreateThread(function()
         Wait(10000)
         if not state.active and name then

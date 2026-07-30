@@ -305,6 +305,40 @@ local RESET_SPAWNS = {
     { x = -1850.0, y = -1231.0, z = 13.0,  h = 30.0  }, -- Del Perro Pier
 }
 
+-- ===== square one =====
+-- The world half of /resetgame, on its own so a mode can call it after a total
+-- wipe without also restarting every resource - restarting them mid-wipe would
+-- tear down the very mode that is trying to start itself again.
+local function resetWorld()
+    TriggerClientEvent('telemetry:clearworld', -1)
+    Wait(1200)
+
+    local at = RESET_SPAWNS[math.random(#RESET_SPAWNS)]
+    for index, src in ipairs(GetPlayers()) do
+        TriggerClientEvent('telemetry:respawn', tonumber(src), at, index)
+    end
+end
+
+exports('resetWorld', function()
+    CreateThread(resetWorld)
+end)
+
+-- True when there are players and every one of them is down. Positions carry a
+-- dead flag and refresh every second, so this is current rather than a guess;
+-- stale entries are ignored outright so a disconnect can't look like a corpse.
+exports('everyoneDown', function()
+    local now, seen = os.time(), 0
+
+    for _, p in pairs(positions) do
+        if (now - (p.at or 0)) < 10 then
+            seen = seen + 1
+            if not p.d then return false end
+        end
+    end
+
+    return seen > 0
+end)
+
 RegisterCommand('resetgame', function()
     TriggerClientEvent('chat:addMessage', -1, {
         color = { 255, 120, 120 },

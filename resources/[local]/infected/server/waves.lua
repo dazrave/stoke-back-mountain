@@ -391,3 +391,53 @@ CreateThread(function()
         end
     end
 end)
+
+
+-- ===== total wipe =====
+-- The campaign already picked itself up after a wipe; the sandbox horde just
+-- left everyone dead on the floor with the wave counter still climbing. Same
+-- deal now: world back to square one, then start again from wave one.
+--
+-- Lives at the bottom on purpose - it drives setState/broadcastEngaged
+-- directly, and those are locals declared further up. Calling the exported
+-- resetAll/setRunning from higher in the file would have been a nil call at
+-- runtime, which luac cannot catch and which shows up only as a dead resource.
+local wipeHandled = false
+
+CreateThread(function()
+    while true do
+        Wait(3000)
+
+        if not state.running then
+            wipeHandled = false
+        elseif not wipeHandled then
+            local ok, down = pcall(function()
+                return exports.telemetry:everyoneDown()
+            end)
+
+            if ok and down then
+                wipeHandled = true
+
+                TriggerClientEvent('chat:addMessage', -1, {
+                    color = { 255, 120, 120 },
+                    args  = { 'horde', 'Everyone died. Starting again from the top.' },
+                })
+
+                -- Same three steps the resetAll export performs.
+                setState({ running = false, wave = 0, kills = 0,
+                           alive = 0, spawned = 0, dead = 0 })
+                TriggerClientEvent('infected:reset', -1)
+                broadcastState()
+
+                pcall(function() exports.telemetry:resetWorld() end)
+
+                CreateThread(function()
+                    Wait(9000)
+                    setState({ running = true })
+                    broadcastEngaged()
+                    broadcastState()
+                end)
+            end
+        end
+    end
+end)
