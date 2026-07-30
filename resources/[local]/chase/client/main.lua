@@ -410,6 +410,10 @@ RegisterNetEvent('chase:end', function(result, fugitiveName)
 
     local shards = {
         escaped  = { 'CLEAN GETAWAY', (fugitiveName or '?') .. ' vanished into the city.' },
+        -- Its own card, not the escaped fallback: the fallback is how a broken
+        -- round ending 'shaken' at the whistle got dressed up as CLEAN GETAWAY,
+        -- which made the bug read like a result (#52).
+        shaken   = { 'SHOOK THE TAIL', (fugitiveName or '?') .. ' lost them for a full minute.' },
         arrested = { 'NICKED', 'By the book. Straight to booking.' },
         shot     = { 'SUSPECT DOWN', 'The chief is FURIOUS. It was supposed to be tyres.' },
         crashed  = { 'CASE CLOSED', 'The suspect fought the scenery. Scenery won.' },

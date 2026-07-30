@@ -323,22 +323,6 @@ exports('resetWorld', function()
     CreateThread(resetWorld)
 end)
 
--- True when there are players and every one of them is down. Positions carry a
--- dead flag and refresh every second, so this is current rather than a guess;
--- stale entries are ignored outright so a disconnect can't look like a corpse.
-exports('everyoneDown', function()
-    local now, seen = os.time(), 0
-
-    for _, p in pairs(positions) do
-        if (now - (p.at or 0)) < 10 then
-            seen = seen + 1
-            if not p.d then return false end
-        end
-    end
-
-    return seen > 0
-end)
-
 RegisterCommand('resetgame', function()
     TriggerClientEvent('chat:addMessage', -1, {
         color = { 255, 120, 120 },
@@ -413,6 +397,28 @@ end)
 
 AddEventHandler('playerDropped', function()
     positions[source] = nil
+end)
+
+-- True when there are players and every one of them is down. Positions carry a
+-- dead flag and refresh every second, so this is current rather than a guess;
+-- stale entries are ignored outright so a disconnect can't look like a corpse.
+--
+-- Lives BELOW the positions table on purpose. It used to sit sixty lines above
+-- it, where the closure captured a global `positions` (nil) instead of the
+-- local - so every call errored, and infected's "everyone died, go again"
+-- check silently never worked. The nil-upvalue trap: luac can't see it, and it
+-- only shows at runtime.
+exports('everyoneDown', function()
+    local now, seen = os.time(), 0
+
+    for _, p in pairs(positions) do
+        if (now - (p.at or 0)) < 10 then
+            seen = seen + 1
+            if not p.d then return false end
+        end
+    end
+
+    return seen > 0
 end)
 
 -- Matches the clients' ping rate: relaying slower than they report just adds

@@ -183,7 +183,15 @@ function start()
 
     airborneAnnounced = false
 
-    setState({
+    -- A fresh table, NOT setState. setState merges with pairs(), and a key
+    -- written as nil in a table constructor is simply absent - pairs() never
+    -- sees it, so `lastSeen = nil` through the merge KEPT last round's final
+    -- sighting. Combined with lastSeenAt going back to 0, the shake-off clock
+    -- then read "spotted hours ago" the moment round two went active and ended
+    -- it on the spot - one good game, then every round after it instantly
+    -- called as a getaway (#52). A new round is a new state, not a patch on
+    -- the old one.
+    state = {
         phase           = 'headstart',
         fugitive        = fugitive,
         fugitiveName    = GetPlayerName(fugitive),
@@ -199,7 +207,7 @@ function start()
         lastSeenAt      = 0,
         lastHeading     = nil,
         fugitivePos     = nil,
-    })
+    }
 
     local spawnIndex   = math.random(#Config.fugitive.spawns)
     local stationIndex = math.random(#Config.stations)
@@ -287,8 +295,12 @@ CreateThread(function()
             -- a lie the scoreboard shouldn't reward.
             local shakeIn = nil
 
+            -- lastSeenAt > 0 as well as lastSeen: the pair must be from THIS
+            -- round. Belt and braces against any future path that leaves one
+            -- half stale - a zero timestamp read as "spotted at server boot"
+            -- is exactly what was ending rounds at the whistle.
             if Config.shakeOff.enabled and state.phase == 'active'
-                and state.lastSeen and not finalAlert then
+                and state.lastSeen and state.lastSeenAt > 0 and not finalAlert then
                 shakeIn = math.max(0, math.ceil(
                     (Config.shakeOff.seconds * 1000 - (now - state.lastSeenAt)) / 1000))
             end
