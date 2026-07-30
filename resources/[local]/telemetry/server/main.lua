@@ -130,8 +130,108 @@ local function query(path, name)
     return raw and urldecode(raw) or nil
 end
 
+-- ===== who is who =====
+-- The workshop pushes the list of people currently in the voice server. That
+-- list IS the crew: nobody maintains a roster file, whoever turned up tonight
+-- is tonight's lineup.
+--
+-- Players then claim which voice is theirs with /iam. That link is the whole
+-- point: it joins "Rory said the thing" to "rorypicko was stood at the pier",
+-- so an overheard idea can be filed with both halves of the story.
+local crew    = {}   -- Mumble names currently in voice
+local claimed = {}   -- [serverId] = Mumble name
+
+local function crewList()
+    if #crew == 0 then return 'nobody in voice yet' end
+    return table.concat(crew, ', ')
+end
+
+local function tell(target, text, colour)
+    TriggerClientEvent('chat:addMessage', target, {
+        color = colour or COLOURS.blue,
+        args  = { 'voice', text },
+    })
+end
+
+local function promptUnclaimed()
+    if #crew == 0 then return end
+
+    for _, src in ipairs(GetPlayers()) do
+        local id = tonumber(src)
+        if not claimed[id] then
+            tell(id, ('Who are you in voice? Type /iam <name> — %s'):format(crewList()))
+        end
+    end
+end
+
+-- /iam rory     - claim a voice. Matched loosely, because nobody wants to type
+--                 an exact handle while being chased.
+RegisterCommand('iam', function(source, args)
+    if source == 0 then return end
+
+    local wanted = (args[1] or ''):lower()
+    if wanted == '' then
+        tell(source, ('Usage: /iam <name> — in voice right now: %s'):format(crewList()))
+        return
+    end
+
+    for _, name in ipairs(crew) do
+        if name:lower():find(wanted, 1, true) then
+            claimed[source] = name
+            tell(source, ('You are %s. Ideas you shout will be filed under that name.'):format(name),
+                 COLOURS.green)
+            return
+        end
+    end
+
+    tell(source, ('No "%s" in voice. Currently: %s'):format(wanted, crewList()), COLOURS.red)
+end, false)
+
+RegisterCommand('whoami', function(source)
+    if source == 0 then return end
+    tell(source, claimed[source]
+        and ('You are %s in voice.'):format(claimed[source])
+        or  ('You haven\'t claimed a voice yet. /iam <name> — %s'):format(crewList()))
+end, false)
+
+AddEventHandler('playerDropped', function()
+    claimed[source] = nil
+end)
+
+-- Anything else that wants the mapping (telemetry snapshots, the workshop).
+exports('getVoice', function(serverId) return claimed[serverId] end)
+exports('getCrew', function() return crew end)
+
 SetHttpHandler(function(req, res)
     local path = req.path or ''
+
+    if path:find('^/roster') and path:find('key=' .. SAY_KEY, 1, true) then
+        local names = query(path, 'names') or ''
+        local fresh = {}
+
+        for name in names:gmatch('[^,]+') do
+            name = name:match('^%s*(.-)%s*$')
+            if name ~= '' then fresh[#fresh + 1] = name end
+        end
+
+        crew = fresh
+
+        -- Drop claims for anyone who has since left voice, so a stale name
+        -- can't keep collecting somebody else's ideas.
+        for id, name in pairs(claimed) do
+            local present = false
+            for _, live in ipairs(crew) do
+                if live == name then present = true break end
+            end
+            if not present then claimed[id] = nil end
+        end
+
+        promptUnclaimed()
+
+        res.writeHead(200, { ['Content-Type'] = 'text/plain' })
+        res.send(('crew: %d\n'):format(#crew))
+        return
+    end
 
     if path:find('^/clap') and path:find('key=' .. CLAP_KEY, 1, true) then
         clap('streamdeck')
@@ -307,6 +407,9 @@ CreateThread(function()
             if (now - (p.at or 0)) < 20 then
                 players[#players + 1] = {
                     name = p.name,
+                    -- The voice name, when they've claimed one. This is what
+                    -- lets an overheard line be tied to where its speaker was.
+                    voice = claimed[p.id],
                     x = math.floor(p.x * 10) / 10,
                     y = math.floor(p.y * 10) / 10,
                     z = math.floor(p.z * 10) / 10,
