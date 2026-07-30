@@ -468,3 +468,37 @@ RegisterNetEvent('chase:end', function()
         mates[id] = nil
     end
 end)
+
+
+-- ===== blues and twos =====
+-- Traffic pulling aside for a siren is behaviour GTA already has; it just
+-- needs the siren actually on, and a player's siren is off until they press
+-- the key. So every copper's car runs them automatically for the whole round.
+--
+-- Deliberately not hand-shoving ambient cars out of the way: steering other
+-- people's traffic from one client fights the engine and looks worse than
+-- leaving it alone. Turning the siren on lets the game do what it already
+-- knows how to do.
+CreateThread(function()
+    local siren = 0
+
+    while true do
+        Wait(1000)
+
+        local role, status = ChaseState()
+        local ped     = PlayerPedId()
+        local vehicle = GetVehiclePedIsIn(ped, false)
+        local onDuty  = role == 'cop' and status.phase and status.phase ~= 'idle'
+
+        if onDuty and vehicle ~= 0 and GetPedInVehicleSeat(vehicle, -1) == ped then
+            siren = vehicle
+            SetVehicleSiren(vehicle, true)
+            SetVehicleHasMutedSirens(vehicle, false)
+        elseif siren ~= 0 then
+            -- Hand it back when the round ends, or they drive round free roam
+            -- with the lights on all night.
+            if DoesEntityExist(siren) then SetVehicleSiren(siren, false) end
+            siren = 0
+        end
+    end
+end)
