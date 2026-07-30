@@ -1,6 +1,12 @@
 -- Scrap Run. One fugitive, everyone else is Old Bill. All tunables here.
 Config = {
     roundSeconds     = 600, -- survive this long = clean getaway
+    -- Grace before the countdown even begins. Roles are sent 1.5s after the
+    -- round is set up and a client can spend another 2.5s waiting for
+    -- collision to load, so a countdown started at round-setup was most of the
+    -- way through before anybody could see it.
+    readySeconds = 4,
+
     -- Everyone starts in the same place now, so the gap comes from this
     -- rather than from distance. Three seconds is enough to get moving and
     -- short enough that nobody is stood watching.

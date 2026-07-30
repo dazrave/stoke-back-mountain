@@ -158,8 +158,14 @@ end
         phase           = 'headstart',
         fugitive        = fugitive,
         fugitiveName    = GetPlayerName(fugitive),
-        headstartEndsAt = now + Config.headstartSeconds * 1000,
-        endsAt          = now + (Config.headstartSeconds + Config.roundSeconds) * 1000,
+        -- Provisional. The real countdown is started further down, once
+        -- everybody has actually been placed - roles go out 1.5s from here and
+        -- a client can spend another 2.5s waiting for collision, so counting
+        -- from this moment had the countdown most of the way through before
+        -- anyone could see it. Seeded long so nothing releases early if the
+        -- setup below ever fails.
+        headstartEndsAt = now + 60000,
+        endsAt          = now + (Config.readySeconds + Config.headstartSeconds + Config.roundSeconds) * 1000,
         lastSeen        = nil,
         lastSeenAt      = 0,
         lastHeading     = nil,
@@ -191,6 +197,19 @@ end
                 spawnIndex   = spawnIndex,
                 stationIndex = stationIndex,
                 spawnFleet   = (id == firstCop), -- exactly one client spawns the cars
+            })
+        end
+
+        -- Everyone has their role and has had time to be stood up. NOW start
+        -- counting, so the number on screen is the whole head start rather
+        -- than whatever was left of it by the time the world loaded.
+        Wait(Config.readySeconds * 1000)
+
+        if state.phase == 'headstart' then
+            local from = GetGameTimer()
+            setState({
+                headstartEndsAt = from + Config.headstartSeconds * 1000,
+                endsAt          = from + (Config.headstartSeconds + Config.roundSeconds) * 1000,
             })
         end
     end)
