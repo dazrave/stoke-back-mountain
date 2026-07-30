@@ -6,6 +6,13 @@ local CAN_MODEL  = 'prop_jerrycan_01a'
 
 DecorRegister(FUEL_DECOR, 1) -- 1 = float
 
+-- Marks anything the campaign spawned. Decors sync between clients, which a
+-- local Lua table does not - that is the whole point. A car spawned on Rory's
+-- machine is invisible to Darren's sweep list, and every list is wiped when
+-- the resource reloads, so leftovers piled up campaign after campaign.
+local MINE_DECOR = 'SBM_PINT'
+DecorRegister(MINE_DECOR, 3) -- 3 = bool
+
 local state = {
     active        = false,
     missionName   = nil,
@@ -56,16 +63,36 @@ local spawnedEntities = {}
 
 local function trackEntity(entity)
     spawnedEntities[#spawnedEntities + 1] = entity
+
+    if DoesEntityExist(entity) then
+        DecorSetBool(entity, MINE_DECOR, true)
+    end
+end
+
+local function bin(entity)
+    if not DoesEntityExist(entity) then return end
+    SetEntityAsMissionEntity(entity, true, true)
+    DeleteEntity(entity)
 end
 
 local function sweepEntities()
     for _, entity in ipairs(spawnedEntities) do
-        if DoesEntityExist(entity) then
-            SetEntityAsMissionEntity(entity, true, true)
-            DeleteEntity(entity)
-        end
+        bin(entity)
     end
     spawnedEntities = {}
+
+    -- Then everything left over from previous campaigns, whoever spawned it
+    -- and however long ago. Anything with somebody sat in it is left alone:
+    -- deleting a car out from under a player is worse than a bit of litter.
+    for _, pool in ipairs({ 'CVehicle', 'CObject' }) do
+        for _, entity in ipairs(GetGamePool(pool)) do
+            if DoesEntityExist(entity)
+                and DecorExistOn(entity, MINE_DECOR)
+                and not (pool == 'CVehicle' and not IsVehicleSeatFree(entity, -1)) then
+                bin(entity)
+            end
+        end
+    end
 end
 
 RegisterNetEvent('pint:begin', function(missionName)
