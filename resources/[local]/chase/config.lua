@@ -93,8 +93,9 @@ Config = {
         enabled         = true,
         -- Unarmed. They pursue, box you in and pile out after you, but the
         -- shooting is left to the human police - it is their round to win.
-        -- NPC gunfire also can't disable a car, since only bullet hits count
-        -- towards that, so nothing is lost by taking their pistols away.
+        -- Nothing is lost by taking their pistols away: gunfire no longer
+        -- disables a car at all (#39). An AI cruiser that shunts you properly
+        -- does count, which is exactly what a cruiser is for.
         armed           = false,
         weapon          = 'WEAPON_PISTOL',
         accuracy        = 25,      -- shooting from a moving car, be fair
