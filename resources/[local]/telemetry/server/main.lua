@@ -430,3 +430,45 @@ CreateThread(function()
         end
     end
 end)
+
+
+-- ===== spawn together =====
+-- In free roam, dying used to drop you at a random map spawn, which with a
+-- group means a five minute drive back to whoever you were with. Now you land
+-- next to somebody. Modes are left alone: they place you deliberately
+-- (checkpoints, scatter stages, chase roles) and must not be second-guessed.
+local function anyModeRunning()
+    local mission = modeState('pint', 'getState')
+    if mission and mission.active then return true end
+
+    local chase = modeState('chase', 'getState')
+    if chase and chase.phase and chase.phase ~= 'idle' then return true end
+
+    local horde = modeState('infected', 'getState')
+    if horde and horde.engaged then return true end
+
+    return false
+end
+
+RegisterNetEvent('telemetry:needSpawnBuddy', function()
+    local source = source
+    if anyModeRunning() then return end
+
+    local now     = os.time()
+    local options = {}
+
+    for id, p in pairs(positions) do
+        -- Somebody alive, on their feet, and reporting recently enough that
+        -- the position isn't where they were five minutes ago.
+        if id ~= source and not p.d and (now - (p.at or 0)) < 30 then
+            options[#options + 1] = p
+        end
+    end
+
+    if #options == 0 then return end   -- first one in; a normal spawn is fine
+
+    local buddy = options[math.random(#options)]
+    TriggerClientEvent('telemetry:spawnNear', source, {
+        x = buddy.x, y = buddy.y, z = buddy.z, name = buddy.name,
+    })
+end)

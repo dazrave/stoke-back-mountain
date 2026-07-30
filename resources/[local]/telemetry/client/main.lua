@@ -226,3 +226,50 @@ CreateThread(function()
         end
     end
 end)
+
+
+-- ===== spawn together =====
+-- Ask the server to put us next to somebody, in free roam only. The server
+-- decides, because only it knows where everyone is and which modes are live.
+AddEventHandler('playerSpawned', function()
+    CreateThread(function()
+        -- Let everyone's position ping land before asking, or we'd be sent to
+        -- wherever the group was a minute ago.
+        Wait(2500)
+        TriggerServerEvent('telemetry:needSpawnBuddy')
+    end)
+end)
+
+RegisterNetEvent('telemetry:spawnNear', function(at)
+    if not at or type(at.x) ~= 'number' then return end
+
+    DoScreenFadeOut(300)
+    Wait(400)
+
+    local ped   = PlayerPedId()
+    local angle = math.random() * 6.28
+
+    -- A few metres off, so two people respawning together don't land inside
+    -- one another.
+    SetEntityCoords(ped, at.x + math.cos(angle) * 3.5,
+                         at.y + math.sin(angle) * 3.5,
+                         at.z + 1.0, false, false, false, false)
+
+    -- One ground probe after a teleport fails, because the map hasn't streamed
+    -- in yet - which is how you end up standing in the sky. Keep asking.
+    for _ = 1, 25 do
+        Wait(150)
+        local pos = GetEntityCoords(ped)
+        local found, groundZ = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 30.0, false)
+        if found then
+            SetEntityCoords(ped, pos.x, pos.y, groundZ + 1.0, false, false, false, false)
+            break
+        end
+    end
+
+    DoScreenFadeIn(500)
+
+    BeginTextCommandThefeedPost('STRING')
+    AddTextComponentSubstringPlayerName(('~g~Dropped in near ~w~%s'):format(at.name or 'the crew'))
+    EndTextCommandThefeedPostTicker(false, true)
+end)

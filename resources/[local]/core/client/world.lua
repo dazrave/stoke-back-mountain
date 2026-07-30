@@ -26,7 +26,13 @@ local function applyExtras(on)
     SetCreateRandomCops(on)
     SetGarbageTrucks(on)
     SetRandomBoats(on)
-    DistantCopCarSirens(on)
+
+    -- Distant sirens stay OFF even in a living city. The native loops an
+    -- ambient siren bed more or less permanently rather than playing it now
+    -- and again, which stops reading as atmosphere and starts reading as a
+    -- fault — and it sits right on top of the voices you actually need to
+    -- hear. Real sirens still play: heat.lua spawns cars with real ones.
+    DistantCopCarSirens(false)
 end
 
 local function applyPolicy(policy)
