@@ -113,13 +113,69 @@ CreateThread(function()
 
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
-        TriggerServerEvent('telemetry:ping', {
-            x = pos.x, y = pos.y, z = pos.z,
-            v = GetVehiclePedIsIn(ped, false) ~= 0, -- in a vehicle
-            d = IsEntityDead(ped),                  -- down / dead
-        })
+        TriggerServerEvent('telemetry:ping', snapshot(ped, pos))
     end
 end)
+
+-- ===== what an issue needs to make sense later =====
+-- "the zombies are too fast" means different things on foot with two shells
+-- left than it does in a car at the observatory. An overheard line is only
+-- useful with the situation attached, so every ping carries the situation.
+
+-- Hashes are what the natives hand back; these are the ones this project
+-- actually uses, so the issue reads "pump shotgun" not "-1878508229".
+local WEAPON_NAMES = {}
+for name, label in pairs({
+    WEAPON_UNARMED = 'fists',        WEAPON_PISTOL      = 'pistol',
+    WEAPON_COMBATPISTOL = 'combat pistol',
+    WEAPON_PUMPSHOTGUN = 'pump shotgun', WEAPON_SAWNOFFSHOTGUN = 'sawn-off',
+    WEAPON_MICROSMG = 'micro SMG',    WEAPON_SMG        = 'SMG',
+    WEAPON_ASSAULTRIFLE = 'assault rifle', WEAPON_CARBINERIFLE = 'carbine',
+    WEAPON_BAT = 'bat',               WEAPON_CROWBAR    = 'crowbar',
+    WEAPON_KNIFE = 'knife',           WEAPON_MACHETE    = 'machete',
+    WEAPON_GRENADE = 'grenade',       WEAPON_MOLOTOV    = 'molotov',
+    WEAPON_PETROLCAN = 'petrol can',  WEAPON_FLASHLIGHT = 'torch',
+}) do
+    WEAPON_NAMES[GetHashKey(name)] = label
+end
+
+local function weaponInfo(ped)
+    local hash = GetSelectedPedWeapon(ped)
+    local name = WEAPON_NAMES[hash] or ('hash ' .. tostring(hash))
+    -- Ammo excludes the loaded clip on some weapons; total is what a player
+    -- means when they say "I'm out".
+    local _, ammo = GetAmmoInClip(ped, hash)
+    return name, (GetAmmoInPedWeapon(ped, hash) or 0), (ammo or 0)
+end
+
+local function snapshot(ped, pos)
+    local weapon, ammo, clip = weaponInfo(ped)
+    local vehicle = GetVehiclePedIsIn(ped, false)
+
+    return {
+        x = pos.x, y = pos.y, z = pos.z,
+        v = vehicle ~= 0,
+        d = IsEntityDead(ped),
+
+        -- Where, in words a person would use.
+        street = GetStreetNameFromHashKey(GetStreetNameAtCoord(pos.x, pos.y, pos.z)),
+        area   = GetLabelText(GetNameOfZone(pos.x, pos.y, pos.z)),
+
+        -- What they were holding and whether they were out.
+        weapon = weapon,
+        ammo   = ammo,
+        clip   = clip,
+
+        -- What state they were in.
+        hp     = GetEntityHealth(ped),
+        armour = GetPedArmour(ped),
+        skin   = GetEntityModel(ped),
+
+        -- What they were driving, if anything.
+        car    = vehicle ~= 0 and GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)) or nil,
+        speed  = math.floor(GetEntitySpeed(ped) * 2.237),  -- mph, as spoken
+    }
+end
 
 RegisterNetEvent('telemetry:mates', function(list)
     mates = list or {}

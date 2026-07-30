@@ -365,6 +365,11 @@ RegisterNetEvent('telemetry:ping', function(pos)
         x = pos.x, y = pos.y, z = pos.z,
         v = pos.v and true or false,
         d = pos.d and true or false,
+        -- Everything an overheard line needs to make sense a week later.
+        street = pos.street, area = pos.area,
+        weapon = pos.weapon, ammo = pos.ammo, clip = pos.clip,
+        hp = pos.hp, armour = pos.armour, skin = pos.skin,
+        car = pos.car, speed = pos.speed,
         at = os.time(),
     }
 end)
@@ -414,6 +419,10 @@ CreateThread(function()
                     y = math.floor(p.y * 10) / 10,
                     z = math.floor(p.z * 10) / 10,
                     v = p.v, d = p.d,
+                    street = p.street, area = p.area,
+                    weapon = p.weapon, ammo = p.ammo, clip = p.clip,
+                    hp = p.hp, armour = p.armour,
+                    car = p.car, speed = p.speed,
                 }
             end
         end
