@@ -26,6 +26,55 @@ local function tell(message)
     })
 end
 
+-- Declared here, defined much further down. endRound puts a fresh round on
+-- after a death, and a call to a `local function` that hasn't been declared yet
+-- resolves to a global instead - nil at runtime, invisible to a syntax check,
+-- and it would show up only as a round that never comes back.
+local start
+
+-- Hand the world back to the zombie stack.
+local function handBackToTheZombies()
+    Wait(8000)
+    if state.phase ~= 'idle' then return end
+
+    StartResource('infected')
+    -- Squadmates are off (#18); see server.cfg. Restoring the mode
+    -- stack after a chase must not quietly bring them back.
+    -- StartResource('squadmate')
+    Wait(1000)
+    StartResource('pint')
+end
+
+-- The two endings that leave a body. Every other ending is tidy by its nature:
+-- an arrest happens with the police stood over the suspect, an escape happens
+-- on the whistle. A death happens wherever it happened - the suspect face down
+-- at the bottom of a ravine, the fleet abandoned across half the map, everyone
+-- else scattered and miles apart - and free roam simply inherited all of it,
+-- with the fugitive left on the floor waiting on a backstop to peel them up.
+local ENDS_IN_A_BODY = { shot = true, crashed = true }
+
+-- Square one, then straight back out again. resetWorld() is telemetry's own
+-- half of /resetgame: it bins the leftover cars and wrecks and puts everybody
+-- back on their feet together in one place, the body included. Then the mode
+-- goes again, which is what a death ought to mean - another go, not an evening
+-- spent driving back from wherever the round died.
+local function resetAndGoAgain()
+    Wait(6000) -- let the end-of-round shard finish playing first
+    if state.phase ~= 'idle' then return end
+
+    tell('Putting everything back where it belongs. Then we go again.')
+    pcall(function() exports.telemetry:resetWorld() end)
+
+    Wait(7000) -- it fades everyone out, gathers them up and fades back in
+
+    -- Somebody may have started a round by hand in the gap, and people do
+    -- leave: with nobody left to chase, hand the city back instead.
+    if state.phase ~= 'idle' then return end
+    if #GetPlayers() < 2 then return handBackToTheZombies() end
+
+    start()
+end
+
 local function endRound(result)
     if state.phase == 'idle' then return end
 
@@ -33,18 +82,7 @@ local function endRound(result)
     TriggerClientEvent('chase:end', -1, result, state.fugitiveName)
     TriggerClientEvent('core:heatSuppress', -1, false) -- free roam gets its police back
 
-    -- Hand the world back to the zombie stack.
-    CreateThread(function()
-        Wait(8000)
-        if state.phase == 'idle' then
-            StartResource('infected')
-            -- Squadmates are off (#18); see server.cfg. Restoring the mode
-            -- stack after a chase must not quietly bring them back.
-            -- StartResource('squadmate')
-            Wait(1000)
-            StartResource('pint')
-        end
-    end)
+    CreateThread(ENDS_IN_A_BODY[result] and resetAndGoAgain or handBackToTheZombies)
 
     local lines = {
         escaped  = ('%s got clean away. Drinks on the police budget.'):format(state.fugitiveName or '?'),
@@ -56,7 +94,8 @@ local function endRound(result)
     tell(lines[result] or 'Round over.')
 end
 
-local function start()
+-- Assigns the local declared at the top of the file, so endRound can reach it.
+function start()
     if state.phase ~= 'idle' then return tell('Round already running. /chase stop first.') end
 
     local players = GetPlayers()

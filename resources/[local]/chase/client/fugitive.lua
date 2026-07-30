@@ -3,6 +3,16 @@
 local nextKnockdown = 0
 local memo = { lastVehicle = 0, firstVehicle = 0, bodyHealth = nil, nextWitness = 0, diedReported = false, hits = 0 }
 
+-- Every round starts on a clean sheet. This never mattered while rounds only
+-- began by hand, minutes apart; now a death rolls straight into the next one,
+-- and stale memory follows the new fugitive around - the car they start in
+-- isn't `firstVehicle` any more, so their own getaway car gets phoned in as
+-- stolen before they've left the kerb, and last round's bullet count is still
+-- ticking against the new one's engine.
+RegisterNetEvent('chase:role', function()
+    memo = { lastVehicle = 0, firstVehicle = 0, bodyHealth = nil, nextWitness = 0, diedReported = false, hits = 0 }
+end)
+
 local function whereAmI()
     local pos    = GetEntityCoords(PlayerPedId())
     local street = GetStreetNameFromHashKey(GetStreetNameAtCoord(pos.x, pos.y, pos.z))
