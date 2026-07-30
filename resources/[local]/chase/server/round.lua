@@ -117,8 +117,14 @@ local function start()
         end
     end)
 
-    tell(('%s is the fugitive - stood right there. %ds head start and you can watch them go.'):format(
-        state.fugitiveName, Config.headstartSeconds))
+    -- With no hold there is nothing to count down, and "0s head start" reads
+    -- like something broke.
+    if Config.headstartSeconds > 0 then
+        tell(('%s is the fugitive - stood right there. %ds head start and you can watch them go.'):format(
+            state.fugitiveName, Config.headstartSeconds))
+    else
+        tell(('%s is the fugitive - stood right there. GO.'):format(state.fugitiveName))
+    end
     tell('You CANNOT shoot them dead - shoot the tyres, corner them, drag them out, nick them.')
 end
 

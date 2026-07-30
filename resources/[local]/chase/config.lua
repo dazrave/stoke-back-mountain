@@ -1,7 +1,11 @@
 -- Scrap Run. One fugitive, everyone else is Old Bill. All tunables here.
 Config = {
     roundSeconds     = 600, -- survive this long = clean getaway
-    headstartSeconds = 20,  -- fugitive runs, cops are held and watching
+    -- 0 = everyone goes at once. The 20s hold made the opening a countdown
+    -- spent staring at somebody's back; the chase is more fun if it simply
+    -- starts. The fugitive still opens up a gap from fugitiveLead below and
+    -- from the cops having to get into cars.
+    headstartSeconds = 0,   -- >0 holds the cops while the fugitive runs
     finalAlertSeconds = 60, -- citywide alert: fugitive permanently revealed
 
     -- Sight rules. A cop "sees" the fugitive when they are within range, on
