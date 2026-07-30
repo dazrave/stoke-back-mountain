@@ -85,6 +85,18 @@ CreateThread(function()
                 SetBlipFlashes(blips.live, true)
                 SetBlipRoute(blips.live, true) -- the GPS line
                 SetBlipRouteColour(blips.live, 1)
+                ShowHeadingIndicatorOnBlip(blips.live, false)
+
+                -- A ring around them while we actually have eyes on, so the
+                -- live lock reads differently from a cold last-known dot.
+                if blips.ring and DoesBlipExist(blips.ring) then
+                    SetBlipCoords(blips.ring, status.trackPos.x, status.trackPos.y, status.trackPos.z)
+                else
+                    blips.ring = AddBlipForRadius(
+                        status.trackPos.x, status.trackPos.y, status.trackPos.z, 45.0)
+                    SetBlipColour(blips.ring, 1)
+                    SetBlipAlpha(blips.ring, 110)
+                end
 
                 if blips.search and DoesBlipExist(blips.search) then
                     RemoveBlip(blips.search)
@@ -95,6 +107,17 @@ CreateThread(function()
                     SetBlipCoords(blips.live, status.lastKnown.x, status.lastKnown.y, status.lastKnown.z)
                     SetBlipFlashes(blips.live, false)
                     SetBlipRoute(blips.live, true)
+
+                    -- All they get once it goes cold: which way he went.
+                    if status.lastHeading then
+                        SetBlipRotation(blips.live, math.floor(status.lastHeading))
+                        ShowHeadingIndicatorOnBlip(blips.live, true)
+                    end
+                end
+
+                if blips.ring and DoesBlipExist(blips.ring) then
+                    RemoveBlip(blips.ring)
+                    blips.ring = nil
                 end
 
                 -- The search area swells the longer they stay hidden.
@@ -361,5 +384,54 @@ CreateThread(function()
                 end
             end
         end
+    end
+end)
+
+
+-- ===== your colleagues, in blue =====
+-- Every other copper on the map. Chase turns off the mate radar that free roam
+-- uses, so without this a cop can see the suspect and not a single one of the
+-- people they are supposed to be coordinating with.
+local mates = {}
+
+CreateThread(function()
+    while true do
+        Wait(1000)
+
+        local role, status = ChaseState()
+        local show = role == 'cop' and status.phase and status.phase ~= 'idle'
+
+        for _, id in ipairs(GetActivePlayers()) do
+            local server = GetPlayerServerId(id)
+            local ped    = GetPlayerPed(id)
+
+            -- Not us, not the suspect, and only while we are actually on duty.
+            local wanted = show
+                and id ~= PlayerId()
+                and server ~= status.fugitiveId
+                and DoesEntityExist(ped)
+
+            if wanted and not (mates[server] and DoesBlipExist(mates[server])) then
+                local blip = AddBlipForEntity(ped)
+                SetBlipSprite(blip, 1)
+                SetBlipColour(blip, 3)   -- blue
+                SetBlipScale(blip, 0.75)
+                SetBlipAsShortRange(blip, false)
+                BeginTextCommandSetBlipName('STRING')
+                AddTextComponentString(GetPlayerName(id))
+                EndTextCommandSetBlipName(blip)
+                mates[server] = blip
+            elseif not wanted and mates[server] and DoesBlipExist(mates[server]) then
+                RemoveBlip(mates[server])
+                mates[server] = nil
+            end
+        end
+    end
+end)
+
+RegisterNetEvent('chase:end', function()
+    for id, blip in pairs(mates) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+        mates[id] = nil
     end
 end)

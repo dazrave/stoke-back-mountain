@@ -8,6 +8,7 @@ local state = {
     endsAt         = 0,
     lastSeen       = nil,    -- vector3-ish table
     lastSeenAt     = 0,
+    lastHeading    = nil,    -- degrees, the way they were going when last seen
     fugitivePos    = nil,    -- heartbeat, used only for the final alert
 }
 
@@ -85,6 +86,7 @@ local function start()
         endsAt          = now + (Config.headstartSeconds + Config.roundSeconds) * 1000,
         lastSeen        = nil,
         lastSeenAt      = 0,
+        lastHeading     = nil,
         fugitivePos     = nil,
     })
 
@@ -160,6 +162,7 @@ CreateThread(function()
                 trackPos     = (finalAlert or headstart) and state.fugitivePos
                     or (tracking and state.lastSeen or nil),
                 lastKnown    = state.lastSeen,
+                lastHeading  = state.lastHeading,
                 unseenFor    = state.lastSeen and math.floor((now - state.lastSeenAt) / 1000) or nil,
                 finalAlert   = finalAlert,
             })
@@ -175,7 +178,20 @@ end)
 RegisterNetEvent('chase:see', function(coords)
     local source = source
     if state.phase ~= 'active' or source == state.fugitive then return end
-    setState({ lastSeen = coords, lastSeenAt = GetGameTimer() })
+
+    -- Which way they were travelling between the last two sightings. Once the
+    -- trail goes cold this is all the police get, and it is the difference
+    -- between searching a circle and searching the right half of one.
+    local heading = state.lastHeading
+
+    if state.lastSeen then
+        local dx, dy = coords.x - state.lastSeen.x, coords.y - state.lastSeen.y
+        if (dx * dx + dy * dy) > 4.0 then   -- ignore standing still
+            heading = math.deg(math.atan(dx, -dy)) % 360.0
+        end
+    end
+
+    setState({ lastSeen = coords, lastSeenAt = GetGameTimer(), lastHeading = heading })
 end)
 
 -- Fugitive position heartbeat; only ever shown during the final alert.
