@@ -1,11 +1,10 @@
 -- Scrap Run. One fugitive, everyone else is Old Bill. All tunables here.
 Config = {
     roundSeconds     = 600, -- survive this long = clean getaway
-    -- 0 = everyone goes at once. The 20s hold made the opening a countdown
-    -- spent staring at somebody's back; the chase is more fun if it simply
-    -- starts. The fugitive still opens up a gap from fugitiveLead below and
-    -- from the cops having to get into cars.
-    headstartSeconds = 0,   -- >0 holds the cops while the fugitive runs
+    -- Everyone starts in the same place now, so the gap comes from this
+    -- rather than from distance. Three seconds is enough to get moving and
+    -- short enough that nobody is stood watching.
+    headstartSeconds = 3,   -- >0 holds the cops while the fugitive runs
     finalAlertSeconds = 60, -- citywide alert: fugitive permanently revealed
 
     -- Sight rules. A cop "sees" the fugitive when they are within range, on
@@ -97,8 +96,10 @@ Config = {
         { pos = vector3(-448.0, 6014.0, 31.7),  h = 50.0  }, -- Paleto Bay
     },
 
-    -- How far up the road the suspect starts, in plain view.
-    fugitiveLead = 45.0,
+    -- Just far enough up the road not to spawn inside the fleet. The lead used
+    -- to be 45m; the head start does that job now, and everyone lining up in
+    -- the same place is the point.
+    fugitiveLead = 8.0,
 
     cop = {
         weapon   = 'WEAPON_PISTOL', -- tyres, not heads

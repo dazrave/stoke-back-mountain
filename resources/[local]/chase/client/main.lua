@@ -220,7 +220,8 @@ RegisterNetEvent('chase:role', function(role)
     local rx, ry  = math.cos(rad), math.sin(rad)    -- across it
 
     if role.isFugitive then
-        -- Up the road from the nick, in plain view, on two wheels.
+        -- Just up the road from everyone else, in plain view. The separation
+        -- that matters is the head start, not the distance.
         local sx = base.x + fx * Config.fugitiveLead
         local sy = base.y + fy * Config.fugitiveLead
 
@@ -235,9 +236,13 @@ RegisterNetEvent('chase:role', function(role)
             if car then trackEntity(car) end
         end
     else
-        SetEntityCoords(ped, origin.x + math.random(-2, 2), origin.y + math.random(-2, 2),
-            origin.z, false, false, false, false)
-        SetEntityHeading(ped, station.h or heading)
+        -- On the road with everybody else, not stood in the station car park.
+        -- Pushed across the kerb so nobody spawns inside the parked fleet.
+        SetEntityCoords(ped,
+            base.x - rx * 3.0 + math.random(-2, 2),
+            base.y - ry * 3.0 + math.random(-2, 2),
+            base.z, false, false, false, false)
+        SetEntityHeading(ped, heading)
         settleToGround()
 
         -- Exactly one cop (the server's pick) spawns the shared fleet, laid
