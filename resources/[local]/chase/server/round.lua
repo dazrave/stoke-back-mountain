@@ -122,8 +122,16 @@ local function nextFugitive(players)
 
     if #ids == 0 then return nil end
 
-    -- Whoever comes after last time. If they have since left, or this is the
-    -- first round, start at the top of the list.
+    -- The first suspect of the night is drawn at random, so the rota doesn't
+    -- always open with whoever happens to hold the lowest server id. After
+    -- that it is strictly the next one along.
+    if lastFugitive == nil then
+        local pick = ids[math.random(#ids)]
+        lastFugitive = pick
+        return pick
+    end
+
+    -- Whoever comes after last time. If they have since left, start at the top.
     local at = 0
     for index, id in ipairs(ids) do
         if id == lastFugitive then at = index break end
