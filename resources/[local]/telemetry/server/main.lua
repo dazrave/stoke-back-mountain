@@ -327,5 +327,3 @@ CreateThread(function()
         end
     end
 end)
-
-print('[telemetry] workshop deploy test marker')
