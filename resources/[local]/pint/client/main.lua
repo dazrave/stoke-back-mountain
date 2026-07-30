@@ -484,6 +484,24 @@ end)
 -- Zone watcher. goto stages report arrival; regroup stages ping presence so
 -- the server can see when everyone is in at once. Distance is 2D on purpose -
 -- a couple of metres of z error must never block a checkpoint.
+-- Living infected near the player. They carry a decor rather than a
+-- relationship group, because groups are set by whoever spawned the ped and
+-- every other machine sees a default - the decor is the only thing that syncs.
+local function infectedWithin(radius)
+    local me    = GetEntityCoords(PlayerPedId())
+    local count = 0
+
+    for _, ped in ipairs(GetGamePool('CPed')) do
+        if DoesEntityExist(ped) and not IsEntityDead(ped) and not IsPedAPlayer(ped)
+            and DecorExistOn(ped, 'SBM_INF') and DecorGetBool(ped, 'SBM_INF')
+            and #(GetEntityCoords(ped) - me) < radius then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
 CreateThread(function()
     while true do
         Wait(500)
@@ -499,6 +517,15 @@ CreateThread(function()
             if stage.type == 'goto' then
                 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
                 local seated  = (not stage.requireVehicle) or vehicle ~= 0
+
+                -- Some objectives want the area earned, not just reached.
+                if stage.requireClear then
+                    local left = infectedWithin(stage.requireClear)
+                    if left > 0 then
+                        seated = false
+                        PintHUD.set({ distance = ('%d still up'):format(left) })
+                    end
+                end
 
                 -- A refuelling objective is done when the tank is done.
                 if stage.requireFuel then

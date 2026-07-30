@@ -126,6 +126,11 @@ Config = {
                   -- needs no securing: you cannot hold an area on foot while
                   -- the objective is to be sat in a car.
                   requireVehicle = true, secureSeconds = 0,
+                  -- Fight the opening ambush off before you're allowed to
+                  -- drive away from it. Without this you could sit in the van
+                  -- the moment it arrived and leave the wave standing there,
+                  -- which made the ambush decorative.
+                  requireClear = 45.0,
                   -- Company from the off. Without this the first infected you
                   -- meet are the ones waiting at Harmony, so the opening leg
                   -- is a quiet drive through an empty map - the apocalypse
