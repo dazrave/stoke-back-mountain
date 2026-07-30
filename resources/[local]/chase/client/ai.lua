@@ -51,6 +51,42 @@ end)
 
 -- Finds a bit of road to come screaming out of, far enough away that they
 -- don't simply appear in the mirror.
+-- The nearest nick, if one is close enough to plausibly have sent the car.
+local function nearestStation(from)
+    local best, bestDist = nil, nil
+
+    for _, station in ipairs(Config.stations or {}) do
+        local distance = #(vector3(from.x, from.y, from.z) - station.pos)
+        if distance <= Config.ai.stationRange and (not bestDist or distance < bestDist) then
+            best, bestDist = station, distance
+        end
+    end
+
+    return best
+end
+
+-- A road node just outside a station. Sampled around it rather than at it,
+-- because the station coordinate is the building and cars spawned there end up
+-- in the lobby.
+local function stationPoint(from)
+    local station = nearestStation(from)
+    if not station then return nil end
+
+    for _ = 1, 8 do
+        local angle = math.random() * 6.2832
+        local out   = 25.0 + math.random() * 35.0
+
+        local ok, node, heading = GetClosestVehicleNodeWithHeading(
+            station.pos.x + math.cos(angle) * out,
+            station.pos.y + math.sin(angle) * out,
+            station.pos.z, 1, 3.0, 0)
+
+        if ok then return node, heading end
+    end
+
+    return nil
+end
+
 local function approachPoint(from)
     for _ = 1, 8 do
         local angle    = math.random() * 6.2832
@@ -70,7 +106,15 @@ local function approachPoint(from)
 end
 
 local function spawnUnit(me)
-    local node, heading = approachPoint(me)
+    -- Out of a nick where there is one in range; otherwise the old behaviour,
+    -- so a chase in the hills still gets police at all.
+    local node, heading
+    if Config.ai.fromStations then
+        node, heading = stationPoint(me)
+    end
+    if not node then
+        node, heading = approachPoint(me)
+    end
     if not node then return end
 
     local carHash = loadModel(Config.ai.models[math.random(#Config.ai.models)])

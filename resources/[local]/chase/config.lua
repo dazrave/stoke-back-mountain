@@ -56,6 +56,16 @@ Config = {
         -- Vinewood hills and the pursuit quietly evaporated. The car stays
         -- destructible on purpose - bursting tyres is half the chase.
         invincible      = true,
+
+        -- Reinforcements come OUT OF a nick rather than materialising in the
+        -- road behind you. Uses the verified `stations` list below, snapped to
+        -- the nearest road node - the same trick the opening fleet uses,
+        -- because hand-placed points park cars inside the building.
+        fromStations    = true,
+        -- Past this, the nearest nick is too far to be the source and units
+        -- fall back to appearing near the suspect. Without it, a chase out at
+        -- Paleto would simply stop producing police.
+        stationRange    = 1200.0,
     },
 
     arrest = {
