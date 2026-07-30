@@ -1,6 +1,6 @@
 -- Fugitive brain: no weapons, position heartbeat, and the breadcrumbs they
 -- leave while hidden - stolen-car reports and collision witnesses.
-local memo = { lastVehicle = 0, firstVehicle = 0, bodyHealth = nil, nextWitness = 0, diedReported = false }
+local memo = { lastVehicle = 0, firstVehicle = 0, bodyHealth = nil, nextWitness = 0, diedReported = false, hits = 0 }
 
 local function whereAmI()
     local pos    = GetEntityCoords(PlayerPedId())
@@ -59,6 +59,33 @@ CreateThread(function()
 
                     memo.lastVehicle = vehicle
                     memo.bodyHealth  = GetVehicleBodyHealth(vehicle)
+                    -- A fresh car is a fresh set of chances.
+                    memo.hits        = 0
+                    ClearEntityLastWeaponDamage(vehicle)
+                end
+
+                -- Take enough rounds and the engine gives up. Counted as
+                -- BULLET damage specifically (type 2), so kerbs and lampposts
+                -- don't quietly use up the allowance - being shot at is the
+                -- thing the police are meant to be rewarded for.
+                if Config.carHits.enabled
+                    and HasEntityBeenDamagedByWeapon(vehicle, 0, 2) then
+                    ClearEntityLastWeaponDamage(vehicle)
+                    memo.hits = memo.hits + 1
+
+                    local left = Config.carHits.hits - memo.hits
+
+                    if left <= 0 then
+                        SetVehicleEngineHealth(vehicle, 0.0)
+                        SetVehicleUndriveable(vehicle, true)
+                        BeginTextCommandThefeedPost('STRING')
+                        AddTextComponentSubstringPlayerName('~r~ENGINE\'S GONE.~w~ Find another motor.')
+                        EndTextCommandThefeedPostTicker(false, true)
+                    elseif left <= 2 then
+                        BeginTextCommandThefeedPost('STRING')
+                        AddTextComponentSubstringPlayerName(('~y~She won\'t take much more. ~w~%d left.'):format(left))
+                        EndTextCommandThefeedPostTicker(false, true)
+                    end
                 end
 
                 -- Bumps and scrapes while hidden get phoned in by witnesses.

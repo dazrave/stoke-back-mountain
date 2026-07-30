@@ -35,6 +35,14 @@ Config = {
     -- Non-lethal by law. Bullets hurt and slow the suspect but can never put
     -- them down: the only way this ends is a proper arrest. Crashing into a
     -- bridge at 90 is still entirely your own business.
+    -- Shoot the car, not the driver. The suspect cannot be killed, so gunfire
+    -- had nothing to do; this gives the police a way to actually end a pursuit
+    -- and gives the fugitive a reason to keep changing cars.
+    carHits = {
+        enabled = true,
+        hits    = 5,     -- bullet hits before the engine gives up
+    },
+
     nonLethal = {
         -- Flip this to false and the suspect can be shot dead like anyone else.
         enabled     = false,
