@@ -114,11 +114,12 @@ Config = {
     -- The fugitive starts up the road from the police, in plain view, with a
     -- mediocre car. Everyone watches them go - that's the whole opening beat.
     fugitive = {
-        -- Dirt bikes only. Off-road is the whole point: kerbs, stairs, the
-        -- storm drain and the hills are all shortcuts a police cruiser can't
-        -- follow, which is what makes the chase interesting.
-        bikes = { 'sanchez', 'sanchez2', 'bf400', 'manchez', 'enduro' },
-        cars  = { 'futo', 'blista', 'asterope', 'premier' }, -- legacy, unused
+        -- An ordinary car. Bikes made the fugitive almost uncatchable - kerbs,
+        -- stairs, the storm drain and the hills are all shortcuts a cruiser
+        -- simply cannot follow, so the pursuit stopped being a pursuit.
+        -- A car keeps everyone on the same roads.
+        cars  = { 'futo', 'blista', 'asterope', 'premier' },
+        bikes = { 'sanchez', 'sanchez2', 'bf400', 'manchez', 'enduro' }, -- unused
         start = vector4(425.1, -1014.0, 30.7, 180.0),
         spawns = {
             vector4(215.0, -810.0, 30.7, 340.0),  -- Legion car park

@@ -228,11 +228,11 @@ RegisterNetEvent('chase:role', function(role)
         SetEntityHeading(ped, heading)
         settleToGround()
 
-        local hash = loadModel(Config.fugitive.bikes[math.random(#Config.fugitive.bikes)])
+        local hash = loadModel(Config.fugitive.cars[math.random(#Config.fugitive.cars)])
         if hash then
-            local bike = placeVehicle(hash, vector4(sx + rx * 2.5, sy + ry * 2.5, base.z, heading))
+            local car = placeVehicle(hash, vector4(sx + rx * 2.5, sy + ry * 2.5, base.z, heading))
             SetModelAsNoLongerNeeded(hash)
-            if bike then trackEntity(bike) end
+            if car then trackEntity(car) end
         end
     else
         SetEntityCoords(ped, origin.x + math.random(-2, 2), origin.y + math.random(-2, 2),
