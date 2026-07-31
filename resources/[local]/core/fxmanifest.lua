@@ -6,10 +6,14 @@ description 'Stokeback core: the shared foundation every mode sits on. First job
 author 'Stokeback Mountain'
 version '0.1.0'
 
+shared_script 'shared/loadouts.lua'
+
 client_scripts {
+    'client/lib.lua',
     'client/world.lua',
     'client/hud.lua',
     'client/life.lua',
+    'client/respawn.lua',
     'client/modifiers.lua',
     'client/spectator.lua',
     'client/vote.lua',
@@ -18,9 +22,18 @@ client_scripts {
 
 server_scripts {
     'server/world.lua',
+    'server/modes.lua',
     'server/stats.lua',
     'server/rules.lua',
     'server/director.lua',
     'server/vote.lua',
     'server/heat.lua',
+}
+
+-- Modes load the toolkit into their own environment with
+--   client_script '@core/client/lib.lua'
+--   shared_script '@core/shared/loadouts.lua'
+files {
+    'client/lib.lua',
+    'shared/loadouts.lua',
 }
