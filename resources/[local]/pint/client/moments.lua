@@ -18,20 +18,7 @@ local function groundAt(point)
     return vector3(point.x, point.y, found and z or point.z)
 end
 
-local function loadModel(name)
-    local hash = GetHashKey(name)
-    if not IsModelInCdimage(hash) then return nil end
-
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
-end
+local loadModel = SBM.loadModel
 
 local moments = {}
 

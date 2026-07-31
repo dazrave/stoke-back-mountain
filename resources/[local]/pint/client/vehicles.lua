@@ -59,10 +59,10 @@ end
 -- Everything this client has spawned for the current mission, so a fresh
 -- mission start sweeps its own leftovers first - no more new Gaz vans landing
 -- on top of old Gaz vans after a wipe or a restart.
-local spawnedEntities = {}
+local ledger = SBM.tracker()
 
 local function trackEntity(entity)
-    spawnedEntities[#spawnedEntities + 1] = entity
+    ledger.track(entity)
 
     if DoesEntityExist(entity) then
         DecorSetBool(entity, MINE_DECOR, true)
@@ -76,10 +76,7 @@ local function bin(entity)
 end
 
 local function sweepEntities()
-    for _, entity in ipairs(spawnedEntities) do
-        bin(entity)
-    end
-    spawnedEntities = {}
+    ledger.sweep()
 
     -- Then everything left over from previous campaigns, whoever spawned it
     -- and however long ago. Anything with somebody sat in it is left alone:
@@ -120,20 +117,7 @@ end)
 
 -- ========== spawning helpers ==========
 
-local function loadModel(name)
-    local hash = GetHashKey(name)
-    if not IsModelInCdimage(hash) then return nil end
-
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
-end
+local loadModel = SBM.loadModel
 
 -- Clears whatever is already parked on a spot - including vans orphaned by an
 -- earlier session, which is how two Gaz vans ended up in the same parking

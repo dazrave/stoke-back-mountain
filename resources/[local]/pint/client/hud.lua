@@ -84,34 +84,7 @@ CreateThread(function()
     end
 end)
 
-function PintHUD.notify(message)
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(message)
-    EndTextCommandThefeedPostTicker(false, true)
-end
+PintHUD.notify = SBM.notify
 
 -- The big cinematic banner (GTA's "shard") for mission start and the win.
-function PintHUD.shard(title, subtitle)
-    CreateThread(function()
-        local movie = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE')
-
-        local deadline = GetGameTimer() + 5000
-        while not HasScaleformMovieLoaded(movie) do
-            if GetGameTimer() > deadline then return end
-            Wait(0)
-        end
-
-        BeginScaleformMovieMethod(movie, 'SHOW_SHARD_WASTED_MP_MESSAGE')
-        ScaleformMovieMethodAddParamPlayerNameString(title)
-        ScaleformMovieMethodAddParamPlayerNameString(subtitle or '')
-        EndScaleformMovieMethod()
-
-        local showUntil = GetGameTimer() + 6000
-        while GetGameTimer() < showUntil do
-            DrawScaleformMovieFullscreen(movie, 255, 255, 255, 255, 0)
-            Wait(0)
-        end
-
-        SetScaleformMovieAsNoLongerNeeded(movie)
-    end)
-end
+PintHUD.shard = SBM.shard

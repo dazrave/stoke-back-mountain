@@ -6,11 +6,18 @@ description 'A Nice Cold Pint - get to the Yellow Jack, have a pint, wait for al
 author 'Stokeback Mountain'
 version '0.1.0'
 
-dependency 'infected'
+dependencies {
+    'core',
+    'infected',
+}
 
-shared_script 'config.lua'
+shared_scripts {
+    '@core/shared/loadouts.lua',
+    'config.lua',
+}
 
 client_scripts {
+    '@core/client/lib.lua',
     'client/hud.lua',
     'client/vehicles.lua',
     'client/moments.lua',

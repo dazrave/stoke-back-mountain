@@ -229,14 +229,7 @@ CreateThread(function()
 
                 local onScreen, sx, sy = World3dToScreen2d(entry.x, entry.y, entry.z + 1.0)
                 if onScreen then
-                    SetTextFont(4)
-                    SetTextScale(0.42, 0.42)
-                    SetTextColour(255, 255, 255, 225)
-                    SetTextOutline()
-                    SetTextCentre(true)
-                    BeginTextCommandDisplayText('STRING')
-                    AddTextComponentSubstringPlayerName(label)
-                    EndTextCommandDisplayText(sx, sy)
+                    SBM.drawText(label, sx, sy, 0.42)
                 end
             end
 
@@ -269,14 +262,9 @@ end)
 local function applyGangLook(gangIndex)
     local models = Config.gang.models
     local name   = models[(((gangIndex or 1) - 1) % #models) + 1]
-    local hash   = GetHashKey(name)
 
-    RequestModel(hash)
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return end
-        Wait(25)
-    end
+    local hash = SBM.loadModel(name)
+    if not hash then return end
 
     SetPlayerModel(PlayerId(), hash)
     SetModelAsNoLongerNeeded(hash)
@@ -447,28 +435,20 @@ RegisterNetEvent('pint:win', function(boat)
     -- The boat. It was always meant to arrive; now it does.
     if boat then
         CreateThread(function()
-            local hash = GetHashKey(boat.model)
+            local hash = SBM.loadModel(boat.model, 6000)
+            if not hash then return end
 
-            if IsModelInCdimage(hash) then
-                RequestModel(hash)
-                local deadline = GetGameTimer() + 6000
-                while not HasModelLoaded(hash) do
-                    if GetGameTimer() > deadline then return end
-                    Wait(25)
-                end
+            local vessel = CreateVehicle(hash, boat.pos.x, boat.pos.y, boat.pos.z, boat.pos.w, true, true)
+            SetModelAsNoLongerNeeded(hash)
 
-                local vessel = CreateVehicle(hash, boat.pos.x, boat.pos.y, boat.pos.z, boat.pos.w, true, true)
-                SetModelAsNoLongerNeeded(hash)
-
-                if DoesEntityExist(vessel) then
-                    SetEntityAsMissionEntity(vessel, true, true)
-                    local blip = AddBlipForEntity(vessel)
-                    SetBlipSprite(blip, 427)
-                    SetBlipColour(blip, 2)
-                    BeginTextCommandSetBlipName('STRING')
-                    AddTextComponentString('The boat')
-                    EndTextCommandSetBlipName(blip)
-                end
+            if DoesEntityExist(vessel) then
+                SetEntityAsMissionEntity(vessel, true, true)
+                local blip = AddBlipForEntity(vessel)
+                SetBlipSprite(blip, 427)
+                SetBlipColour(blip, 2)
+                BeginTextCommandSetBlipName('STRING')
+                AddTextComponentString('The boat')
+                EndTextCommandSetBlipName(blip)
             end
         end)
     end

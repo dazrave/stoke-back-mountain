@@ -30,20 +30,7 @@ end)
 RegisterNetEvent('pint:ended', function() loot.active = false end)
 RegisterNetEvent('pint:win', function() loot.active = false end)
 
-local function loadModel(name)
-    local hash = GetHashKey(name)
-    if not IsModelInCdimage(hash) then return nil end
-
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
-end
+local loadModel = SBM.loadModel
 
 RegisterNetEvent('pint:spawnStash', function(index)
     local mission = M()
