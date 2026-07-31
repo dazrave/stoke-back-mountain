@@ -22,6 +22,8 @@ local function ensureRelationshipGroup()
     return squadHash
 end
 
+-- The streaming loop lives in the core toolkit; this wrapper keeps the
+-- ped-model check and the (nil, error string) shape Squad.spawn reports with.
 local function loadModel(modelName)
     local hash = GetHashKey(modelName)
 
@@ -29,14 +31,8 @@ local function loadModel(modelName)
         return nil, ('"%s" is not a valid ped model'):format(modelName)
     end
 
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + Config.bot.modelTimeoutMs
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then
-            return nil, ('timed out loading ped model "%s"'):format(modelName)
-        end
-        Wait(50)
+    if not SBM.loadModel(modelName, Config.bot.modelTimeoutMs) then
+        return nil, ('timed out loading ped model "%s"'):format(modelName)
     end
 
     return hash

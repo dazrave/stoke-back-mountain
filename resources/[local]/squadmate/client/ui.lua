@@ -28,8 +28,6 @@ function UI.drawStatus(text)
     EndTextCommandDisplayText(Config.ui.statusX, Config.ui.statusY)
 end
 
-function UI.notify(message)
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(message)
-    EndTextCommandThefeedPostTicker(false, true)
-end
+-- The mechanics live in the core toolkit; UI keeps the name so callers read
+-- the same as ever.
+UI.notify = SBM.notify

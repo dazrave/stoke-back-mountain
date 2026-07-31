@@ -33,16 +33,7 @@ local function dropCarried()
 end
 
 local function loadCanModel()
-    local hash = GetHashKey(CAN_MODEL)
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 5000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
+    return SBM.loadModel(CAN_MODEL, 5000)
 end
 
 local function startFetch()

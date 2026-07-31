@@ -52,9 +52,7 @@ RegisterNetEvent('telemetry:sync', function(n)
     flashUntil = GetGameTimer() + 130 -- ~a tenth of a second of pure white
     PlaySoundFrontend(-1, 'Beep_Red', 'DLC_HEIST_HACKING_SNAKE_SOUNDS', true)
 
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(('~y~CLAP #%d~w~ — synced'):format(n or 0))
-    EndTextCommandThefeedPostTicker(false, true)
+    SBM.notify(('~y~CLAP #%d~w~ — synced'):format(n or 0))
 end)
 
 -- Part of /resetgame: everyone gets a clean respawn at a normal map spawn.
@@ -308,35 +306,30 @@ end)
 RegisterNetEvent('telemetry:spawnNear', function(at)
     if not at or type(at.x) ~= 'number' then return end
 
-    DoScreenFadeOut(300)
-    Wait(400)
+    SBM.behindFade(function()
+        local ped   = PlayerPedId()
+        local angle = math.random() * 6.28
 
-    local ped   = PlayerPedId()
-    local angle = math.random() * 6.28
+        -- A few metres off, so two people respawning together don't land inside
+        -- one another.
+        SetEntityCoords(ped, at.x + math.cos(angle) * 3.5,
+                             at.y + math.sin(angle) * 3.5,
+                             at.z + 1.0, false, false, false, false)
 
-    -- A few metres off, so two people respawning together don't land inside
-    -- one another.
-    SetEntityCoords(ped, at.x + math.cos(angle) * 3.5,
-                         at.y + math.sin(angle) * 3.5,
-                         at.z + 1.0, false, false, false, false)
-
-    -- One ground probe after a teleport fails, because the map hasn't streamed
-    -- in yet - which is how you end up standing in the sky. Keep asking.
-    for _ = 1, 25 do
-        Wait(150)
-        local pos = GetEntityCoords(ped)
-        local found, groundZ = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 30.0, false)
-        if found then
-            SetEntityCoords(ped, pos.x, pos.y, groundZ + 1.0, false, false, false, false)
-            break
+        -- One ground probe after a teleport fails, because the map hasn't streamed
+        -- in yet - which is how you end up standing in the sky. Keep asking.
+        for _ = 1, 25 do
+            Wait(150)
+            local pos = GetEntityCoords(ped)
+            local found, groundZ = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 30.0, false)
+            if found then
+                SetEntityCoords(ped, pos.x, pos.y, groundZ + 1.0, false, false, false, false)
+                break
+            end
         end
-    end
+    end, 300, 500)
 
-    DoScreenFadeIn(500)
-
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(('~g~Dropped in near ~w~%s'):format(at.name or 'the crew'))
-    EndTextCommandThefeedPostTicker(false, true)
+    SBM.notify(('~g~Dropped in near ~w~%s'):format(at.name or 'the crew'))
 end)
 
 
