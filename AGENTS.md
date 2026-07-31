@@ -67,6 +67,30 @@ you touch logic. The levers:
 
 A new mission or vignette is **data**: add an entry, don't write a new system.
 
+## The framework
+
+`core` is the foundation every mode sits on. **Never re-implement these** — if
+you find yourself writing any of them inside a mode, stop and use core's:
+
+| Need | Use |
+|---|---|
+| stream a model | `SBM.loadModel(name, timeoutMs?)` |
+| drop a ped onto loaded ground | `SBM.settleToGround(expectedZ)` |
+| feed ticker / big moment card / HUD text | `SBM.notify` / `SBM.shard` / `SBM.drawText` |
+| do something behind a fade | `SBM.behindFade(fn)` |
+| remember spawned entities + sweep them | `SBM.tracker()` |
+| an AI ped that must not die by accident | `SBM.hardenPed(ped)` |
+| what a player spawns holding | `ApplyLoadout(name)`, kits in `core/shared/loadouts.lua` |
+| respawn after death (delay/kit/messages) | `TriggerEvent('core:respawnPolicy', {...})` — see `core/client/respawn.lua` |
+| stop other modes / restore the world | `exports.core:claimWorld(name)` / `exports.core:releaseWorld()` |
+
+Wiring a mode in: `client_script '@core/client/lib.lua'` first in
+client_scripts, `shared_script '@core/shared/loadouts.lua'` if it names a kit,
+and `dependency 'core'`. See `chase/fxmanifest.lua` for the shape.
+
+A new game mode is: a config, its rules, its drama. The mechanics above are
+already written.
+
 ## Ship it
 
 1. Edit the file(s). Match the surrounding style — it is idiomatic and commented;
