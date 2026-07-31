@@ -12,11 +12,9 @@ function HUD.set(nextState)
     }
 end
 
-function HUD.notify(message)
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(message)
-    EndTextCommandThefeedPostTicker(false, true)
-end
+-- The toolkit's feed ticker, kept under the local name the rest of the mode
+-- already uses.
+HUD.notify = SBM.notify
 
 function HUD.draw()
     local text = ('WAVE ~y~%d~w~   ALIVE ~r~%d~w~   KILLS ~g~%d~w~   YOURS ~b~%d')

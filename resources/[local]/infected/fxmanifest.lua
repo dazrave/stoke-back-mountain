@@ -9,6 +9,7 @@ version '0.1.0'
 shared_script 'config.lua'
 
 client_scripts {
+    '@core/client/lib.lua',
     'client/archetypes.lua',
     'client/spawner.lua',
     'client/behaviour.lua',
@@ -21,3 +22,5 @@ client_scripts {
 server_scripts {
     'server/waves.lua',
 }
+
+dependency 'core'

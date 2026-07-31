@@ -1,10 +1,6 @@
 -- Command surface for solo testing. Everything here is client-side, so it only
 -- ever affects the person who typed it.
-local function say(message)
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(message)
-    EndTextCommandThefeedPostTicker(false, true)
-end
+local say = SBM.notify
 
 local function onOff(value)
     return value and '~g~ON' or '~r~OFF'

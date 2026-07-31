@@ -7,8 +7,10 @@ author 'Stokeback Mountain'
 version '0.1.0'
 
 dependency 'infected'
+dependency 'core'
 
 client_scripts {
+    '@core/client/lib.lua',
     'client/overlay.lua',
     'client/noclip.lua',
     'client/perf.lua',

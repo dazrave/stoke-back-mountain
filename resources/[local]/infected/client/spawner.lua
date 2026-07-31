@@ -43,19 +43,17 @@ function Spawner.hasHeadroom(count)
     return CanRegisterMissionEntities(needed, 0, 0, 0)
 end
 
+-- Streaming itself is SBM.loadModel (same 10s deadline). What stays here is
+-- spawner-specific: the ped-model check and the named errors callers print.
 local function loadModel(modelName)
     local hash = GetHashKey(modelName)
     if not IsModelInCdimage(hash) or not IsModelAPed(hash) then
         return nil, ('"%s" is not a valid ped model'):format(modelName)
     end
 
-    RequestModel(hash)
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then
-            return nil, ('timed out loading "%s"'):format(modelName)
-        end
-        Wait(25)
+    hash = SBM.loadModel(modelName)
+    if not hash then
+        return nil, ('timed out loading "%s"'):format(modelName)
     end
 
     return hash

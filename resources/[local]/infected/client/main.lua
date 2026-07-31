@@ -256,22 +256,8 @@ AddEventHandler('infected:ammoDrop', function(at)
     local hash
 
     for _, name in ipairs(Config.carrier.props) do
-        local candidate = GetHashKey(name)
-
-        if IsModelInCdimage(candidate) then
-            RequestModel(candidate)
-
-            local deadline = GetGameTimer() + 4000
-            while not HasModelLoaded(candidate) do
-                if GetGameTimer() > deadline then break end
-                Wait(25)
-            end
-
-            if HasModelLoaded(candidate) then
-                hash = candidate
-                break
-            end
-        end
+        hash = SBM.loadModel(name, 4000)
+        if hash then break end
     end
 
     if not hash then
