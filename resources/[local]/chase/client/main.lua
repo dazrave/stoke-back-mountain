@@ -17,63 +17,16 @@ end
 
 ChaseHUD = {}
 
-function ChaseHUD.notify(message)
-    BeginTextCommandThefeedPost('STRING')
-    AddTextComponentSubstringPlayerName(message)
-    EndTextCommandThefeedPostTicker(false, true)
-end
+-- The mechanics live in the core toolkit; ChaseHUD stays as the mode's own
+-- names for them so cop.lua and fugitive.lua read the same as ever.
+ChaseHUD.notify = SBM.notify
+ChaseHUD.shard  = SBM.shard
 
 function ChaseHUD.draw(text, x, y, scale)
-    SetTextFont(4)
-    SetTextScale(scale or Config.hud.scale, scale or Config.hud.scale)
-    SetTextColour(255, 255, 255, 225)
-    SetTextOutline()
-    SetTextCentre(true)
-
-    BeginTextCommandDisplayText('STRING')
-    AddTextComponentSubstringPlayerName(text)
-    EndTextCommandDisplayText(x, y)
+    SBM.drawText(text, x, y, scale or Config.hud.scale)
 end
 
-function ChaseHUD.shard(title, subtitle)
-    CreateThread(function()
-        local movie = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE')
-
-        local deadline = GetGameTimer() + 5000
-        while not HasScaleformMovieLoaded(movie) do
-            if GetGameTimer() > deadline then return end
-            Wait(0)
-        end
-
-        BeginScaleformMovieMethod(movie, 'SHOW_SHARD_WASTED_MP_MESSAGE')
-        ScaleformMovieMethodAddParamPlayerNameString(title)
-        ScaleformMovieMethodAddParamPlayerNameString(subtitle or '')
-        EndScaleformMovieMethod()
-
-        local showUntil = GetGameTimer() + 6000
-        while GetGameTimer() < showUntil do
-            DrawScaleformMovieFullscreen(movie, 255, 255, 255, 255, 0)
-            Wait(0)
-        end
-
-        SetScaleformMovieAsNoLongerNeeded(movie)
-    end)
-end
-
-local function loadModel(name)
-    local hash = GetHashKey(name)
-    if not IsModelInCdimage(hash) then return nil end
-
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 10000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
-end
+local loadModel = SBM.loadModel
 
 -- Puts a vehicle down flat on the road. Creating one at a guessed height
 -- drops it in, and GTA's physics happily lands it on its roof - which is how
@@ -112,61 +65,13 @@ local function placeVehicle(hash, pos)
     return vehicle
 end
 
--- Drops the player onto solid ground, waiting for the map to stream in first.
--- A single probe right after a teleport asks about terrain that hasn't loaded
--- yet, fails, and leaves you standing in the sky - which is exactly what was
--- happening at the police station.
--- `expectedZ` is the height of the road we meant to land on. The probe starts
--- 40m up and takes the FIRST surface going down, which next to a building is
--- its roof - so without a sanity check people spawn on top of the nick and
--- spend the head start looking for the stairs.
-local function settleToGround(expectedZ)
-    local ped = PlayerPedId()
-
-    FreezeEntityPosition(ped, true)
-
-    for _ = 1, 25 do
-        local pos = GetEntityCoords(ped)
-        RequestCollisionAtCoord(pos.x, pos.y, pos.z)
-
-        Wait(100)
-
-        if HasCollisionLoadedAroundEntity(ped) then
-            local found, groundZ = GetGroundZFor_3dCoord(pos.x, pos.y, pos.z + 40.0, false)
-
-            -- More than a storey above the road we aimed at is a roof, not the
-            -- ground. Take the road height instead and let physics settle it.
-            if found and expectedZ and groundZ > (expectedZ + 6.0) then
-                found, groundZ = true, expectedZ
-            end
-
-            if found then
-                SetEntityCoords(ped, pos.x, pos.y, groundZ + 1.0, false, false, false, false)
-                break
-            end
-        end
-    end
-
-    FreezeEntityPosition(ped, false)
-end
+local settleToGround = SBM.settleToGround
 
 -- Round vehicles this client spawned; swept before each new round so fleets
 -- don't stack up at the station.
-local spawnedEntities = {}
-
-local function trackEntity(entity)
-    spawnedEntities[#spawnedEntities + 1] = entity
-end
-
-local function sweepEntities()
-    for _, entity in ipairs(spawnedEntities) do
-        if DoesEntityExist(entity) then
-            SetEntityAsMissionEntity(entity, true, true)
-            DeleteEntity(entity)
-        end
-    end
-    spawnedEntities = {}
-end
+local roundCars    = SBM.tracker()
+local trackEntity  = roundCars.track
+local sweepEntities = roundCars.sweep
 
 local function applyLook(modelName)
     local hash = loadModel(modelName)

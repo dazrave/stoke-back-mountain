@@ -42,12 +42,9 @@ local function handBackToTheZombies()
     Wait(8000)
     if state.phase ~= 'idle' then return end
 
-    StartResource('infected')
-    -- Squadmates are off (#18); see server.cfg. Restoring the mode
-    -- stack after a chase must not quietly bring them back.
-    -- StartResource('squadmate')
-    Wait(1000)
-    StartResource('pint')
+    -- What comes back (and what stays off - squadmates, #18) is core's
+    -- call, not this mode's: the stack is data in core/server/modes.lua.
+    exports.core:releaseWorld()
 end
 
 -- The two endings that leave a body. Every other ending is tidy by its nature:
@@ -170,13 +167,9 @@ function start()
     TriggerClientEvent('core:heatSuppress', -1, true)
 
     -- The zombie stack owns the world (empty streets, fog, one-hit-kill).
-    -- This mode needs a LIVING city, so it turns all that off - with the
-    -- resource natives, because a script has no permission to run the console
-    -- stop/ensure commands and those calls were being silently denied.
-    StopResource('infected_dev')
-    StopResource('pint')
-    StopResource('infected')
-    StopResource('squadmate')
+    -- This mode needs a living city, so it claims the world and core stops
+    -- everything else.
+    exports.core:claimWorld('chase')
 
     local fugitive = nextFugitive(players)
     local now      = GetGameTimer()

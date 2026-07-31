@@ -210,10 +210,11 @@ RegisterNetEvent('chase:ping', function(kind, coords, label)
 end)
 
 -- Loadout on release, and the arrest.
+-- The kit itself is core's business now (shared/loadouts.lua); the mode just
+-- names it. The infinite-ammo thread below still tops up Config.cop.weapon,
+-- which the 'cop' loadout includes.
 local function issueKit()
-    local ped = PlayerPedId()
-    RemoveAllPedWeapons(ped, true)
-    GiveWeaponToPed(ped, GetHashKey(Config.cop.weapon), Config.cop.ammo, false, true)
+    ApplyLoadout('cop')
 end
 
 RegisterNetEvent('chase:release', function()
@@ -337,8 +338,23 @@ local function setAutoSpawn(enabled)
     pcall(function() exports.spawnmanager:setAutoSpawn(enabled) end)
 end
 
-RegisterNetEvent('chase:role', function()
+RegisterNetEvent('chase:role', function(role)
     setAutoSpawn(false)
+
+    -- Death is core's job now. Cops get back up where they fell, kit
+    -- reissued; the fugitive's death stays the mode's own drama (it ends the
+    -- round), so their policy is off.
+    if not role.isFugitive and Config.cop.respawn.enabled then
+        TriggerEvent('core:respawnPolicy', {
+            kind        = 'where-you-fell',
+            delay       = Config.cop.respawn.delaySeconds,
+            loadout     = 'cop',
+            downMessage = '~r~You\'re down.~w~ Back on shift shortly.',
+            upMessage   = '~b~Back on shift.~w~ Get after them.',
+        })
+    else
+        TriggerEvent('core:respawnPolicy', { kind = 'off' })
+    end
 end)
 
 -- Put it back ourselves. This used to rely on `pint` restarting seconds later
@@ -348,51 +364,7 @@ end)
 -- Turning back on what we turned off is the resource's own job.
 RegisterNetEvent('chase:end', function()
     setAutoSpawn(true)
-end)
-
-CreateThread(function()
-    while true do
-        Wait(500)
-
-        local role, status = ChaseState()
-
-        if role == 'cop' and Config.cop.respawn.enabled
-            and status.phase and status.phase ~= 'idle' then
-            local ped = PlayerPedId()
-
-            if IsEntityDead(ped) or IsPedFatallyInjured(ped) then
-                ChaseHUD.notify('~r~You\'re down.~w~ Back on shift shortly.')
-                Wait(Config.cop.respawn.delaySeconds * 1000)
-
-                -- Check again: a death on the whistle must not haul somebody
-                -- upright after the end-of-round shard has already played.
-                role, status = ChaseState()
-
-                if role == 'cop' and status.phase and status.phase ~= 'idle' then
-                    local at = GetEntityCoords(PlayerPedId())
-
-                    DoScreenFadeOut(400)
-                    Wait(500)
-
-                    -- Up where you fell rather than back at the nick: a chase
-                    -- out at Paleto would otherwise end your round anyway, just
-                    -- with a very long drive attached.
-                    NetworkResurrectLocalPlayer(at.x, at.y, at.z + 1.0,
-                        GetEntityHeading(PlayerPedId()), true, false)
-
-                    local up = PlayerPedId()
-                    ClearPedTasksImmediately(up)
-                    SetEntityHealth(up, GetEntityMaxHealth(up))
-                    ClearPedBloodDamage(up)
-                    SetPlayerInvincible(PlayerId(), false)
-                    issueKit()
-
-                    DoScreenFadeIn(600)
-                    ChaseHUD.notify('~b~Back on shift.~w~ Get after them.')
-                end
-            end
-        end
-    end
+    TriggerEvent('core:respawnPolicy', { kind = 'off' })
 end)
 
 -- Unlimited ammunition for the law. Running dry mid-pursuit just stalls the

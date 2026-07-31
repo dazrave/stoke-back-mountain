@@ -11,20 +11,7 @@
 -- rather than declaring war on the human coppers as well.
 local units = {}
 
-local function loadModel(name)
-    local hash = GetHashKey(name)
-    if not IsModelInCdimage(hash) then return nil end
-
-    RequestModel(hash)
-
-    local deadline = GetGameTimer() + 8000
-    while not HasModelLoaded(hash) do
-        if GetGameTimer() > deadline then return nil end
-        Wait(25)
-    end
-
-    return hash
-end
+local loadModel = SBM.loadModel
 
 local function despawn(unit)
     if unit.ped and DoesEntityExist(unit.ped) then
@@ -171,14 +158,7 @@ local function spawnUnit(me)
     end
 
     if Config.ai.invincible then
-        SetEntityInvincible(driver, true)
-        -- Invincibility alone does not stop a fall: fall damage arrives as
-        -- COLLISION damage, which is the fourth proof here and the reason a
-        -- cop could still be killed by a drop off the hills.
-        -- (bullet, fire, explosion, collision, melee, steam, p7, drown)
-        SetEntityProofs(driver, true, true, true, true, true, true, true, true)
-        SetPedSuffersCriticalHits(driver, false)
-        SetPedDiesInWater(driver, false)
+        SBM.hardenPed(driver) -- proofs included: fall damage is COLLISION damage
         SetPedCanRagdollFromPlayerImpact(driver, false)
     end
 
